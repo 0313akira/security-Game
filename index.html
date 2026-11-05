@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ホワイトハッカー・ミッション</title>
+<style>
+  :root {
+    --bg: #0b1210;
+    --panel: #111c19;
+    --panel2: #16241f;
+    --line: #1f332c;
+    --text: #d6f5e8;
+    --muted: #7fa898;
+    --accent: #2ee88f;
+    --accent2: #39c6ff;
+    --danger: #ff5c6c;
+    --warn: #ffc94d;
+    --mono: "Consolas", "Menlo", "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    line-height: 1.6; min-height: 100vh;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+  h1, h2, h3 { margin: 0 0 8px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px; margin-bottom: 14px;
+  }
+  .title-logo {
+    font-family: var(--mono); color: var(--accent); font-size: clamp(22px, 6vw, 40px);
+    text-shadow: 0 0 12px rgba(46,232,143,.5); letter-spacing: 1px;
+  }
+  .sub { color: var(--muted); }
+  button {
+    font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--accent);
+    background: transparent; color: var(--accent); padding: 10px 18px; font-weight: bold;
+  }
+  button:hover { background: rgba(46,232,143,.12); }
+  button.primary { background: var(--accent); color: #062014; }
+  button.primary:hover { filter: brightness(1.1); }
+  button.ghost { border-color: var(--line); color: var(--muted); }
+  button:disabled { opacity: .4; cursor: default; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .spacer { flex: 1; }
+  .hud {
+    display: flex; gap: 10px; flex-wrap: wrap; font-family: var(--mono);
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 12px; margin-bottom: 12px; font-size: 14px;
+  }
+  .hud b { color: var(--accent); }
+  .badge {
+    display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px;
+    background: var(--panel2); border: 1px solid var(--line); color: var(--accent2);
+  }
+  .scenario { border-left: 4px solid var(--accent2); }
+  .code {
+    font-family: var(--mono); font-size: 14px; background: #070c0b;
+    border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; padding: 6px 0;
+  }
+  .ln {
+    display: flex; width: 100%; text-align: left; border: none; border-radius: 0;
+    background: transparent; color: var(--text); padding: 3px 12px 3px 0;
+    font-family: var(--mono); font-weight: normal; white-space: pre; min-width: max-content;
+    border-left: 4px solid transparent;
+  }
+  .ln:hover { background: rgba(57,198,255,.08); }
+  .ln .no { color: #4c6b60; width: 40px; text-align: right; padding-right: 12px; flex: none; user-select: none; }
+  .ln.marked { background: rgba(255,201,77,.15); border-left-color: var(--warn); }
+  .ln.hit { background: rgba(46,232,143,.18); border-left-color: var(--accent); }
+  .ln.miss { background: rgba(255,92,108,.18); border-left-color: var(--danger); }
+  .ln.fp { background: rgba(127,168,152,.12); border-left-color: var(--muted); text-decoration: line-through; }
+  .ln.done { cursor: default; }
+  .hint { color: var(--warn); margin-top: 10px; display: none; }
+  .result-item { border-radius: 10px; padding: 12px; margin-bottom: 10px; background: var(--panel2); border-left: 4px solid var(--line); }
+  .result-item.ok { border-left-color: var(--accent); }
+  .result-item.ng { border-left-color: var(--danger); }
+  .result-item h4 { margin: 0 0 6px; }
+  .fix { font-family: var(--mono); font-size: 13px; background: #070c0b; padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; margin-top: 6px; color: var(--accent); }
+  .choices { display: grid; gap: 8px; margin-top: 10px; }
+  .choices button { text-align: left; border-color: var(--line); color: var(--text); font-weight: normal; }
+  .choices button.correct { border-color: var(--accent); background: rgba(46,232,143,.15); }
+  .choices button.wrong { border-color: var(--danger); background: rgba(255,92,108,.15); }
+  .stage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+  .stage-grid button { text-align: left; border-color: var(--line); color: var(--text); font-weight: normal; }
+  .stage-grid button small { color: var(--muted); display: block; }
+  .rank { font-size: 64px; font-family: var(--mono); color: var(--accent); text-shadow: 0 0 18px rgba(46,232,143,.6); line-height: 1.1; }
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--panel2); border: 1px solid var(--accent); color: var(--accent);
+    padding: 8px 16px; border-radius: 8px; font-family: var(--mono); opacity: 0; transition: opacity .2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  ul.rules { padding-left: 20px; margin: 6px 0; }
+  .typing::after { content: "▋"; animation: blink 1s steps(1) infinite; color: var(--accent); }
+  @keyframes blink { 50% { opacity: 0; } }
+  .score-big { font-family: var(--mono); font-size: 28px; color: var(--accent); }
+  table.sum { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.sum td, table.sum th { border-bottom: 1px solid var(--line); padding: 6px; text-align: left; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- タイトル -->
+  <section id="s-title" class="screen active">
+    <div class="card" style="text-align:center">
+      <div class="title-logo">&gt; WHITE_HAT_MISSION_</div>
+      <h2>ホワイトハッカー・ミッション</h2>
+      <p class="sub">あなたはセキュリティ会社の新人ホワイトハッカー。<br>依頼されたシステムを診断し、悪いハッカーより先に<b>脆弱性（セキュリティの穴）</b>を見つけよう！</p>
+      <div class="row" style="justify-content:center">
+        <button class="primary" id="btn-start">ミッション開始</button>
+        <button id="btn-select">ステージを選ぶ</button>
+      </div>
+      <p class="sub" id="best-score" style="margin-top:12px"></p>
+    </div>
+    <div class="card">
+      <h3>遊び方</h3>
+      <ul class="rules">
+        <li>ソースコード・メール・設定ファイル・ログが表示されます。</li>
+        <li>危ないと思う<b>行をクリック</b>してマーク（もう一度クリックで解除）。</li>
+        <li>「診断レポート提出」で答え合わせ。正解 <b>+100点</b>、間違い（安全な行）<b>-30点</b>。</li>
+        <li>ヒントを見ると <b>-50点</b>。そのあと「直し方クイズ」に正解すると <b>+50点</b>。</li>
+      </ul>
+      <h3>ホワイトハッカーの約束</h3>
+      <ul class="rules">
+        <li>診断は<b>許可をもらったシステムだけ</b>。他人のシステムを勝手に調べるのは犯罪です（不正アクセス禁止法）。</li>
+        <li>見つけた穴は悪用せず、<b>持ち主に報告して直してもらう</b>のが仕事です。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ステージ選択 -->
+  <section id="s-select" class="screen">
+    <div class="card">
+      <div class="row"><h2>ステージ選択</h2><span class="spacer"></span><button class="ghost" id="btn-back-title">戻る</button></div>
+      <p class="sub">授業で特定のテーマだけ扱いたいときはここから。単発プレイのスコアはランキングに残りません。</p>
+      <div class="stage-grid" id="stage-grid"></div>
+    </div>
+  </section>
+
+  <!-- ゲーム -->
+  <section id="s-game" class="screen">
+    <div class="hud">
+      <span>MISSION <b id="hud-stage"></b></span>
+      <span>SCORE <b id="hud-score">0</b></span>
+      <span>マーク <b id="hud-marks">0</b>行</span><span>脆弱性 <b id="hud-total">0</b>件</span>
+      <span class="spacer"></span>
+      <span id="hud-type" class="badge"></span>
+    </div>
+    <div class="card scenario">
+      <h2 id="g-title"></h2>
+      <div id="g-client" class="sub"></div>
+      <p id="g-scenario"></p>
+    </div>
+    <div class="code" id="g-code"></div>
+    <div class="hint" id="g-hint"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="ghost" id="btn-hint">ヒント (-50)</button>
+      <span class="spacer"></span>
+      <button class="primary" id="btn-submit">診断レポート提出</button>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="s-result" class="screen">
+    <div class="card">
+      <div class="row"><h2 id="r-title">診断結果</h2><span class="spacer"></span><span class="score-big" id="r-gain"></span></div>
+      <div class="code" id="r-code"></div>
+      <p class="sub" style="font-size:13px">緑=発見 ／ 赤=見逃し ／ 取り消し線=安全な行をマーク</p>
+      <div id="r-list"></div>
+    </div>
+    <div class="card" id="quiz-card">
+      <h3>直し方クイズ</h3>
+      <p id="q-text"></p>
+      <div class="choices" id="q-choices"></div>
+      <p id="q-explain" class="sub" style="display:none"></p>
+    </div>
+    <div class="row">
+      <span class="spacer"></span>
+      <button class="primary" id="btn-next" disabled>次のミッションへ</button>
+    </div>
+  </section>
+
+  <!-- 最終結果 -->
+  <section id="s-final" class="screen">
+    <div class="card" style="text-align:center">
+      <p class="sub">全ミッション完了</p>
+      <div class="rank" id="f-rank"></div>
+      <h2 id="f-title"></h2>
+      <div class="score-big" id="f-score"></div>
+      <p id="f-msg" class="sub"></p>
+    </div>
+    <div class="card">
+      <h3>ミッション別スコア</h3>
+      <table class="sum" id="f-table"></table>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="primary" id="btn-retry">もう一度プレイ</button>
+      <button id="btn-to-title">タイトルへ</button>
+    </div>
+  </section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== ステージデータ =====================
+   lines   : 表示する行
+   vulns   : 脆弱性のある行（0始まり）と解説
+   neutral : 怪しいとも言える行（マークしても減点なし）
+*/
+const STAGES = [
+  {
+    title: "ログイン画面の診断",
+    client: "依頼主：まなび高校 Webサイト担当",
+    type: "Python / SQLインジェクション",
+    scenario: "生徒用ログイン画面を作りました。ユーザー名とパスワードでログインできます。危ない所がないか見てください。",
+    lines: [
+      'def login(request):',
+      '    user = request.form["username"]',
+      '    pw   = request.form["password"]',
+      '    query = "SELECT * FROM users WHERE name=\'" + user + "\' AND pass=\'" + pw + "\'"',
+      '    result = db.execute(query)',
+      '    if result:',
+      '        return "ようこそ"',
+      '    return "ログイン失敗"',
+    ],
+    vulns: [
+      { line: 3, name: "SQLインジェクション",
+        why: "入力をそのまま文字列でつなげてSQLを作っている。ユーザー名に「' OR '1'='1' --」と入れると、パスワードなしでログインできてしまう。",
+        fix: 'query = "SELECT * FROM users WHERE name=? AND pass=?"\nresult = db.execute(query, (user, pw))  # プレースホルダを使う' },
+    ],
+    neutral: [4],
+    hint: "ユーザーが入力した文字が、どこにそのまま入り込んでいる？",
+    quiz: {
+      q: "SQLインジェクションを防ぐいちばん良い方法は？",
+      choices: ["入力欄の文字数を短くする", "プレースホルダ（プリペアドステートメント）を使う", "SQLを英語ではなく日本語で書く", "ログイン失敗の回数を表示する"],
+      answer: 1,
+      explain: "プレースホルダを使うと、入力は「ただのデータ」として扱われ、SQL文の一部として実行されなくなります。"
+    }
+  },
+  {
+    title: "コメント掲示板の診断",
+    client: "依頼主：文化祭実行委員会",
+    type: "JavaScript / XSS",
+    scenario: "文化祭サイトにコメント機能をつけました。名前とコメントを書くと一覧に表示されます。",
+    lines: [
+      'const form = document.getElementById("comment-form");',
+      'form.addEventListener("submit", (e) => {',
+      '  e.preventDefault();',
+      '  const name = form.name.value;',
+      '  const text = form.text.value;',
+      '  const li = document.createElement("li");',
+      '  li.innerHTML = "<b>" + name + "</b>: " + text;',
+      '  document.getElementById("list").appendChild(li);',
+      '});',
+    ],
+    vulns: [
+      { line: 6, name: "クロスサイトスクリプティング（XSS）",
+        why: "入力をinnerHTMLでそのままHTMLとして表示している。コメントに <img src=x onerror=\"...\"> などを書かれると、見た人のブラウザで悪いスクリプトが動く。",
+        fix: 'const b = document.createElement("b");\nb.textContent = name;           // 文字として表示\nli.append(b, ": " + text);' },
+    ],
+    neutral: [],
+    hint: "入力された文字が「文字」ではなく「HTML」として扱われている行は？",
+    quiz: {
+      q: "XSSを防ぐために、表示するときにやるべきことは？",
+      choices: ["入力をHTMLとして解釈しない（エスケープ / textContentを使う）", "背景色を変える", "コメントを1日で消す", "ボタンを大きくする"],
+      answer: 0,
+      explain: "< > \" などを無害な文字に変換（エスケープ）するか、textContentで「文字として」表示します。"
+    }
+  },
+  {
+    title: "怪しいメールの調査",
+    client: "依頼主：先生（受信したメールの調査依頼）",
+    type: "メール / フィッシング",
+    scenario: "「学校ポータル」からこんなメールが届きました。本物でしょうか？怪しいポイントを全部見つけてください。",
+    lines: [
+      '差出人: 学校ポータル事務局 <support@schoo1-portal.com>',
+      '件名: 【至急】アカウントが停止されました',
+      '',
+      'いつも学校ポータルをご利用いただきありがとうございます。',
+      '不正なアクセスを検知したため、アカウントを一時停止しました。',
+      '24時間以内に下記URLからパスワードを再設定してください。',
+      'http://schoo1-portal.com.login-check.xyz/reset',
+      '再設定しない場合、成績データはすべて削除されます。',
+      '',
+      '学校ポータル事務局',
+    ],
+    vulns: [
+      { line: 0, name: "なりすましドメイン",
+        why: "「school」ではなく「schoo1」（数字の1）。本物そっくりの偽ドメイン。",
+        fix: "差出人のアドレスを1文字ずつ確認する。公式サイトのドメインと比べる。" },
+      { line: 1, name: "焦らせる件名",
+        why: "【至急】【停止】など、慌てさせて冷静に考えさせないのはフィッシングの典型。",
+        fix: "急がされたときこそ一度止まって、別の方法（電話や公式サイト）で確認する。" },
+      { line: 6, name: "偽のURL",
+        why: "本当のドメインは最後の「login-check.xyz」。前半に本物っぽい名前を入れてごまかしている。しかもhttp（暗号化なし）。",
+        fix: "メールのリンクは押さず、ブックマークや公式アプリからアクセスする。" },
+      { line: 7, name: "脅し文句",
+        why: "「データが削除される」と脅して行動させようとしている。本物の学校はこんな連絡をしない。",
+        fix: "怪しいと思ったら先生や情報担当に相談する。" },
+    ],
+    neutral: [4, 5],
+    hint: "差出人のアドレスとURLを1文字ずつよく見てみよう。怪しいポイントは4つ。",
+    quiz: {
+      q: "フィッシングメールかも？と思ったときの正しい行動は？",
+      choices: ["とりあえずリンクを開いて確かめる", "メールに返信して本物か聞く", "リンクは押さず、公式サイトや先生に確認する", "友達に転送して意見を聞く"],
+      answer: 2,
+      explain: "リンクを開くだけで危険な場合もあります。メール以外の方法で本物かどうか確認しましょう。"
+    }
+  },
+  {
+    title: "会員登録機能の診断",
+    client: "依頼主：部活動アプリ開発チーム",
+    type: "Python / パスワード管理",
+    scenario: "部活アプリに会員登録を作りました。パスワードはハッシュ化しているので安全…なはずです。",
+    lines: [
+      'import hashlib',
+      'def register(username, password):',
+      '    if len(password) < 4:',
+      '        raise ValueError("パスワードが短すぎます")',
+      '    hashed = hashlib.md5(password.encode()).hexdigest()',
+      '    db.insert("users", name=username, password=hashed)',
+      '    log.info(f"新規登録: {username} / {password}")',
+      '    return "登録完了"',
+    ],
+    vulns: [
+      { line: 2, name: "弱いパスワードを許可",
+        why: "4文字で登録できてしまう。「1234」などはすぐに総当たりで破られる。",
+        fix: "if len(password) < 12:   # 長さを十分にとる\n    raise ValueError(...)" },
+      { line: 4, name: "弱いハッシュ（MD5・ソルトなし）",
+        why: "MD5は高速すぎて総当たりに弱く、ソルトもないので同じパスワードは同じ値になり、事前計算表（レインボーテーブル）で一発で分かる。",
+        fix: "import bcrypt\nhashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())" },
+      { line: 6, name: "パスワードをログに記録",
+        why: "せっかくハッシュ化しても、ログに平文のパスワードが残ったら意味がない。",
+        fix: 'log.info(f"新規登録: {username}")   # パスワードは絶対に書かない' },
+    ],
+    neutral: [],
+    hint: "穴は3つ。「長さ」「ハッシュの種類」「どこかに書き出している」に注目。",
+    quiz: {
+      q: "パスワードを保存する方法として最も適切なのは？",
+      choices: ["そのまま（平文）で保存", "MD5でハッシュ化して保存", "bcryptなど、ソルト付きで遅いハッシュ関数を使う", "Base64で変換して保存"],
+      answer: 2,
+      explain: "bcrypt / Argon2 などはわざと計算を遅くし、ソルトも自動で付けるので総当たりに強いです。Base64はただの変換で、すぐ元に戻せます。"
+    }
+  },
+  {
+    title: "ファイルダウンロード機能の診断",
+    client: "依頼主：学校の配布資料サイト",
+    type: "Python / ディレクトリトラバーサル",
+    scenario: "プリントのPDFを /download?file=xxx.pdf でダウンロードできるようにしました。",
+    lines: [
+      'from flask import request, send_file',
+      '@app.route("/download")',
+      'def download():',
+      '    filename = request.args.get("file")',
+      '    path = "/var/www/uploads/" + filename',
+      '    return send_file(path)',
+    ],
+    vulns: [
+      { line: 4, name: "ディレクトリトラバーサル",
+        why: "file=../../../etc/passwd のように「../」を使うと、uploadsフォルダの外にある重要なファイルまで読めてしまう。",
+        fix: "from werkzeug.utils import secure_filename\npath = os.path.join(UPLOAD_DIR, secure_filename(filename))\n# さらに、許可したファイル一覧と照合するとより安全" },
+    ],
+    neutral: [3, 5],
+    hint: "ファイル名に「../」が入っていたらどうなる？",
+    quiz: {
+      q: "「../」の意味は？",
+      choices: ["1つ上のフォルダ", "ファイルの削除", "管理者権限", "ファイルの圧縮"],
+      answer: 0,
+      explain: "「../」は1つ上のフォルダを表します。何回も重ねると、本来見せてはいけない場所までたどり着けてしまいます。"
+    }
+  },
+  {
+    title: "サーバー設定ファイルの診断",
+    client: "依頼主：まなび高校 情報担当",
+    type: "設定ファイル / 設定ミス",
+    scenario: "学校のWebサーバーを新しく立てました。設定ファイルをチェックしてください。",
+    lines: [
+      '# server.conf',
+      'server_name          = manabi-web',
+      'listen_port          = 80',
+      'debug_mode           = true',
+      'admin_user           = admin',
+      'admin_password       = admin',
+      'ssh_port             = 22',
+      'ssh_permit_root_login = yes',
+      'allow_ip             = 0.0.0.0/0',
+      'log_level            = info',
+    ],
+    vulns: [
+      { line: 3, name: "デバッグモードが有効",
+        why: "エラー時に内部の情報（ソースコードやパス、設定）が外部に丸見えになる。本番では必ずオフ。",
+        fix: "debug_mode = false" },
+      { line: 5, name: "初期パスワードのまま",
+        why: "admin / admin は攻撃者が真っ先に試す組み合わせ。",
+        fix: "admin_password = （長くて推測されにくいパスワード）" },
+      { line: 7, name: "rootでのSSHログインを許可",
+        why: "最強の権限を持つrootに直接ログインを試され続ける。破られたら全てを奪われる。",
+        fix: "ssh_permit_root_login = no\n# 一般ユーザー + 鍵認証でログインし、必要なときだけ権限を上げる" },
+      { line: 8, name: "全世界からのアクセスを許可",
+        why: "0.0.0.0/0 は「すべてのIPアドレス」。管理機能まで世界中から触れてしまう。",
+        fix: "allow_ip = 192.168.10.0/24   # 校内ネットワークだけ" },
+    ],
+    neutral: [2, 4, 6],
+    hint: "穴は4つ。「開発用の設定」「初期値」「権限」「誰が接続できるか」。",
+    quiz: {
+      q: "サーバーを公開する前にやるべきことでないものは？",
+      choices: ["初期パスワードを変更する", "デバッグモードを切る", "不要なアクセスを制限する", "管理者パスワードを全員に共有する"],
+      answer: 3,
+      explain: "パスワードの共有は危険です。誰が何をしたか追えなくなり、漏れる可能性も高くなります。"
+    }
+  },
+  {
+    title: "成績確認APIの診断",
+    client: "依頼主：成績管理システム開発チーム",
+    type: "Python / アクセス制御の不備（IDOR）",
+    scenario: "ログインした生徒が /api/grades/自分の番号 で成績を見られるAPIです。SQLはプレースホルダを使ってるので安全です！",
+    lines: [
+      '@app.route("/api/grades/<int:student_id>")',
+      '@login_required',
+      'def get_grades(student_id):',
+      '    grades = db.query("SELECT * FROM grades WHERE student_id = ?", student_id)',
+      '    return jsonify(grades)',
+    ],
+    vulns: [
+      { line: 3, name: "アクセス制御の不備（IDOR）",
+        why: "ログインさえしていれば、URLの番号を書き換えるだけで他人の成績が見られる。SQLは安全でも「その人が見ていいデータか」をチェックしていない。",
+        fix: "if student_id != current_user.id:\n    abort(403)   # 自分のデータ以外は拒否" },
+    ],
+    neutral: [0, 2],
+    hint: "/api/grades/1001 を /api/grades/1002 に変えたら…？",
+    quiz: {
+      q: "「ログインしているか」と「そのデータを見る権限があるか」を確認すること、それぞれ何と呼ぶ？",
+      choices: ["認証 と 認可", "暗号 と 復号", "送信 と 受信", "保存 と 削除"],
+      answer: 0,
+      explain: "認証＝本人かどうかの確認、認可＝その人に何を許すかの確認。このAPIは認証はあるけど認可が抜けていました。"
+    }
+  },
+  {
+    title: "ネットワーク診断ツールの診断",
+    client: "依頼主：情報部の先輩",
+    type: "Python / OSコマンドインジェクション",
+    scenario: "Webからpingを打てる便利ツールを作ったよ。ホスト名を入れると結果が表示されるんだ。",
+    lines: [
+      'import os',
+      '@app.route("/ping")',
+      'def ping():',
+      '    host = request.args.get("host")',
+      '    result = os.popen("ping -c 1 " + host).read()',
+      '    return "<pre>" + result + "</pre>"',
+    ],
+    vulns: [
+      { line: 4, name: "OSコマンドインジェクション",
+        why: "host に「8.8.8.8; rm -rf /」のように「;」で別のコマンドを続けると、サーバー上で好きなコマンドを実行されてしまう。",
+        fix: 'import subprocess, ipaddress\nip = ipaddress.ip_address(host)        # IPアドレスか検証\nsubprocess.run(["ping", "-c", "1", str(ip)], capture_output=True)' },
+      { line: 5, name: "出力をエスケープせず表示（XSS）",
+        why: "コマンドの結果や入力がそのままHTMLとして返されるので、スクリプトを埋め込まれる可能性がある。",
+        fix: 'from html import escape\nreturn "<pre>" + escape(result) + "</pre>"' },
+    ],
+    neutral: [3],
+    hint: "穴は2つ。シェルでは「;」や「&&」で複数のコマンドをつなげられる。",
+    quiz: {
+      q: "OSコマンドインジェクション対策として良いのは？",
+      choices: ["シェルを使わず、引数をリストで渡す＋入力を検証する", "コマンド名を大文字にする", "pingの回数を増やす", "結果を画像で返す"],
+      answer: 0,
+      explain: "シェルを経由しないと「;」などの特殊記号が解釈されません。さらに入力がIPアドレスかどうか検証すると安心です。"
+    }
+  },
+  {
+    title: "スマホアプリ用設定の診断",
+    client: "依頼主：学校お知らせアプリ開発チーム",
+    type: "JavaScript / 秘密情報の埋め込み",
+    scenario: "このconfig.jsはブラウザ（利用者のスマホ）にそのまま配信されます。",
+    lines: [
+      '// config.js（ブラウザに配信される）',
+      'const API_BASE    = "https://api.manabi-app.jp";',
+      'const API_KEY     = "sk_live_9f8a7b6c5d4e3f2a1b";',
+      'const DB_PASSWORD = "P@ssw0rd2024";',
+      'function fetchNews() {',
+      '  return fetch(API_BASE + "/news?key=" + API_KEY);',
+      '}',
+    ],
+    vulns: [
+      { line: 2, name: "APIキーのハードコード",
+        why: "ブラウザに配られるファイルは誰でも中身を見られる。本番用（live）の秘密キーが盗まれ、なりすましや高額請求に使われる。",
+        fix: "// 秘密キーはサーバー側の環境変数に置き、\n// ブラウザ → 自分のサーバー → 外部API の順で中継する" },
+      { line: 3, name: "DBパスワードの埋め込み",
+        why: "データベースのパスワードが丸見え。しかも推測されやすい。",
+        fix: "// DBのパスワードはサーバー側だけで管理。フロントには絶対に置かない" },
+    ],
+    neutral: [5],
+    hint: "ブラウザの「開発者ツール」を開けば、このファイルは誰でも読める。",
+    quiz: {
+      q: "ソースコードに秘密情報を書いてGitHubに公開してしまった！まずやるべきことは？",
+      choices: ["ファイルからその行を消してコミットすれば大丈夫", "すぐにキーやパスワードを無効化・変更する", "リポジトリの名前を変える", "誰も見てないはずなので放置"],
+      answer: 1,
+      explain: "公開された瞬間に自動で収集されることもあります。履歴にも残るので、行を消すだけでは不十分。まずキー自体を無効化しましょう。"
+    }
+  },
+  {
+    title: "最終ミッション：攻撃の痕跡を探せ",
+    client: "依頼主：まなび高校 情報担当（緊急）",
+    type: "アクセスログ / インシデント調査",
+    scenario: "サーバーの様子がおかしい！アクセスログから攻撃の痕跡を全部見つけてください。",
+    lines: [
+      '10.0.0.5     [05/Nov 09:00:01] "GET /index.html" 200',
+      '10.0.0.8     [05/Nov 09:00:03] "GET /news" 200',
+      '203.0.113.9  [05/Nov 09:01:10] "POST /login user=admin" 401',
+      '203.0.113.9  [05/Nov 09:01:10] "POST /login user=admin" 401',
+      '203.0.113.9  [05/Nov 09:01:11] "POST /login user=admin" 401',
+      '10.0.0.5     [05/Nov 09:02:00] "GET /about" 200',
+      '198.51.100.4 [05/Nov 09:03:15] "GET /search?q=\' OR 1=1 --" 500',
+      '198.51.100.4 [05/Nov 09:03:20] "GET /download?file=../../etc/passwd" 200',
+      '10.0.0.8     [05/Nov 09:04:00] "GET /contact" 200',
+    ],
+    vulns: [
+      { line: 2, name: "パスワード総当たり（ブルートフォース）①",
+        why: "同じIPから1秒間に何度もadminへのログイン失敗（401）。機械で総当たりしている。",
+        fix: "ログイン失敗が続いたらロック・待ち時間を入れる。多要素認証を導入する。" },
+      { line: 3, name: "パスワード総当たり（ブルートフォース）②", why: "同上。", fix: "同上。" },
+      { line: 4, name: "パスワード総当たり（ブルートフォース）③", why: "同上。", fix: "同上。" },
+      { line: 6, name: "SQLインジェクションの試み",
+        why: "「' OR 1=1 --」はSQLインジェクションの定番。500エラーが出ているのでSQLが壊れた可能性がある。",
+        fix: "検索機能をプレースホルダで書き直す（ミッション1を思い出そう）。" },
+      { line: 7, name: "ディレクトリトラバーサル成功の疑い",
+        why: "「../../etc/passwd」へのアクセスが 200（成功）。重要ファイルが盗まれたかもしれない！最も緊急度が高い。",
+        fix: "すぐに機能を止め、ミッション5の対策を入れる。被害範囲を調査し報告する。" },
+    ],
+    neutral: [],
+    hint: "攻撃は3種類、合計5行。同じIPから短時間に大量のアクセス、変な記号の入ったURLに注目。",
+    quiz: {
+      q: "攻撃の痕跡を見つけたホワイトハッカーがやるべきことは？",
+      choices: ["攻撃元のIPにやり返す", "ログを消して証拠を隠す", "記録を保存し、すぐ管理者に報告する", "SNSに書き込んで注意を呼びかける"],
+      answer: 2,
+      explain: "証拠（ログ）を保全して、責任者に速やかに報告するのが正しい対応です。やり返すのは違法になりえます。"
+    }
+  },
+];
+
+const RANKS = [
+  { min: 0.9, rank: "S", title: "伝説のホワイトハッカー", msg: "完璧に近い診断！あなたがいればこの学校は安心です。" },
+  { min: 0.75, rank: "A", title: "凄腕セキュリティエンジニア", msg: "ほとんどの穴を見抜きました。プロ級です！" },
+  { min: 0.55, rank: "B", title: "一人前のホワイトハッカー", msg: "いい調子！見逃した穴の解説を読み直すとさらに伸びます。" },
+  { min: 0.3, rank: "C", title: "見習いハッカー", msg: "基本はつかめています。もう一度挑戦してみよう！" },
+  { min: -Infinity, rank: "D", title: "セキュリティ研修生", msg: "最初はみんなここから。解説を読んで再挑戦！" },
+];
+
+/* ===================== 状態 ===================== */
+const state = {
+  mode: "full",        // full: 全ステージ / single: 1ステージだけ
+  index: 0,
+  score: 0,
+  marks: new Set(),
+  hintUsed: false,
+  stageScores: [],
+  stageGain: 0,
+};
+
+const $ = (id) => document.getElementById(id);
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 1200);
+}
+
+function loadBest() {
+  try { return parseInt(localStorage.getItem("whm-best") || "0", 10) || 0; } catch { return 0; }
+}
+function saveBest(v) {
+  try { localStorage.setItem("whm-best", String(v)); } catch {}
+}
+function maxScore() {
+  return STAGES.reduce((s, st) => s + st.vulns.length * 100 + 50, 0);
+}
+function renderBest() {
+  const b = loadBest();
+  $("best-score").textContent = b > 0 ? `ベストスコア：${b} / ${maxScore()}` : "";
+}
+
+/* ===================== 画面描画 ===================== */
+function renderCode(container, stage, classify) {
+  container.innerHTML = "";
+  stage.lines.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.className = "ln";
+    const no = document.createElement("span");
+    no.className = "no";
+    no.textContent = i + 1;
+    const code = document.createElement("span");
+    code.textContent = text || " ";
+    btn.append(no, code);
+    classify(btn, i);
+    container.appendChild(btn);
+  });
+}
+
+function startStage(i) {
+  state.index = i;
+  state.marks = new Set();
+  state.hintUsed = false;
+  const st = STAGES[i];
+  $("hud-stage").textContent = state.mode === "full" ? `${i + 1}/${STAGES.length}` : `${i + 1}（単発）`;
+  $("hud-score").textContent = state.score;
+  $("hud-total").textContent = st.vulns.length;
+  $("hud-marks").textContent = 0;
+  $("hud-type").textContent = st.type;
+  $("g-title").textContent = `MISSION ${i + 1}：${st.title}`;
+  $("g-client").textContent = st.client;
+  $("g-scenario").textContent = st.scenario;
+  $("g-hint").style.display = "none";
+  $("g-hint").textContent = "ヒント：" + st.hint;
+  $("btn-hint").disabled = false;
+  renderCode($("g-code"), st, (btn, idx) => {
+    btn.addEventListener("click", () => {
+      if (state.marks.has(idx)) { state.marks.delete(idx); btn.classList.remove("marked"); }
+      else { state.marks.add(idx); btn.classList.add("marked"); }
+      $("hud-marks").textContent = state.marks.size;
+    });
+  });
+  show("s-game");
+}
+
+function useHint() {
+  if (state.hintUsed) return;
+  state.hintUsed = true;
+  $("g-hint").style.display = "block";
+  $("btn-hint").disabled = true;
+  toast("ヒント使用 -50");
+}
+
+function submit() {
+  const st = STAGES[state.index];
+  if (state.marks.size === 0 && !confirm("1行もマークしていません。このまま提出しますか？")) return;
+  const vulnLines = new Set(st.vulns.map(v => v.line));
+  const neutral = new Set(st.neutral || []);
+  let hits = 0, fps = 0;
+  state.marks.forEach(m => {
+    if (vulnLines.has(m)) hits++;
+    else if (!neutral.has(m)) fps++;
+  });
+  let gain = hits * 100 - fps * 30 - (state.hintUsed ? 50 : 0);
+  state.stageGain = gain;
+  state.score += gain;
+
+  $("r-title").textContent = `MISSION ${state.index + 1} 診断結果：${hits} / ${st.vulns.length} 件発見`;
+  $("r-gain").textContent = (gain >= 0 ? "+" : "") + gain;
+
+  renderCode($("r-code"), st, (btn, idx) => {
+    btn.classList.add("done");
+    if (vulnLines.has(idx)) btn.classList.add(state.marks.has(idx) ? "hit" : "miss");
+    else if (state.marks.has(idx) && !neutral.has(idx)) btn.classList.add("fp");
+    else if (state.marks.has(idx)) btn.classList.add("marked");
+  });
+
+  const list = $("r-list");
+  list.innerHTML = "";
+  st.vulns.forEach(v => {
+    const found = state.marks.has(v.line);
+    const div = document.createElement("div");
+    div.className = "result-item " + (found ? "ok" : "ng");
+    const h = document.createElement("h4");
+    h.textContent = `${found ? "✔ 発見" : "✘ 見逃し"}　${v.line + 1}行目：${v.name}`;
+    const p = document.createElement("div");
+    p.textContent = v.why;
+    const fx = document.createElement("div");
+    fx.className = "fix";
+    fx.textContent = "【対策】\n" + v.fix;
+    div.append(h, p, fx);
+    list.appendChild(div);
+  });
+  if (fps > 0) {
+    const div = document.createElement("div");
+    div.className = "result-item";
+    div.textContent = `安全な行を ${fps} 行マークしました（-${fps * 30}）。本物の診断でも「誤検知」は相手の時間を奪うので、根拠を持って報告しよう。`;
+    list.appendChild(div);
+  }
+
+  // クイズ
+  $("q-text").textContent = st.quiz.q;
+  $("q-explain").style.display = "none";
+  $("btn-next").disabled = true;
+  $("btn-next").textContent = (state.mode === "full" && state.index < STAGES.length - 1) ? "次のミッションへ" : "結果を見る";
+  const qc = $("q-choices");
+  qc.innerHTML = "";
+  st.quiz.choices.forEach((c, ci) => {
+    const b = document.createElement("button");
+    b.textContent = `${"ABCD"[ci]}. ${c}`;
+    b.addEventListener("click", () => answerQuiz(ci));
+    qc.appendChild(b);
+  });
+  show("s-result");
+}
+
+function answerQuiz(ci) {
+  const st = STAGES[state.index];
+  const btns = $("q-choices").querySelectorAll("button");
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === st.quiz.answer) b.classList.add("correct");
+    else if (i === ci) b.classList.add("wrong");
+  });
+  const ok = ci === st.quiz.answer;
+  if (ok) { state.score += 50; state.stageGain += 50; toast("正解！ +50"); }
+  else toast("ざんねん…");
+  $("r-gain").textContent = (state.stageGain >= 0 ? "+" : "") + state.stageGain;
+  const ex = $("q-explain");
+  ex.textContent = (ok ? "正解！ " : "不正解。 ") + st.quiz.explain;
+  ex.style.display = "block";
+  state.stageScores[state.index] = state.stageGain;
+  $("btn-next").disabled = false;
+}
+
+function next() {
+  if (state.mode === "full" && state.index < STAGES.length - 1) startStage(state.index + 1);
+  else finish();
+}
+
+function finish() {
+  const max = state.mode === "full" ? maxScore() : STAGES[state.index].vulns.length * 100 + 50;
+  const ratio = state.score / max;
+  const r = RANKS.find(x => ratio >= x.min);
+  $("f-rank").textContent = r.rank;
+  $("f-title").textContent = r.title;
+  $("f-score").textContent = `${state.score} / ${max} 点`;
+  $("f-msg").textContent = r.msg + (state.mode === "single" ? "（単発プレイ）" : "");
+  const tbl = $("f-table");
+  tbl.innerHTML = "<tr><th>#</th><th>ミッション</th><th>点数</th></tr>";
+  STAGES.forEach((st, i) => {
+    if (state.stageScores[i] === undefined) return;
+    const tr = document.createElement("tr");
+    [String(i + 1), st.title, String(state.stageScores[i])].forEach(t => {
+      const td = document.createElement("td"); td.textContent = t; tr.appendChild(td);
+    });
+    tbl.appendChild(tr);
+  });
+  if (state.mode === "full" && state.score > loadBest()) {
+    saveBest(state.score);
+    toast("ベストスコア更新！");
+  }
+  show("s-final");
+}
+
+function startFull() {
+  state.mode = "full"; state.score = 0; state.stageScores = [];
+  startStage(0);
+}
+function startSingle(i) {
+  state.mode = "single"; state.score = 0; state.stageScores = [];
+  startStage(i);
+}
+
+/* ===================== イベント ===================== */
+$("btn-start").addEventListener("click", startFull);
+$("btn-retry").addEventListener("click", startFull);
+$("btn-select").addEventListener("click", () => show("s-select"));
+$("btn-back-title").addEventListener("click", () => { renderBest(); show("s-title"); });
+$("btn-to-title").addEventListener("click", () => { renderBest(); show("s-title"); });
+$("btn-hint").addEventListener("click", useHint);
+$("btn-submit").addEventListener("click", submit);
+$("btn-next").addEventListener("click", next);
+
+const grid = $("stage-grid");
+STAGES.forEach((st, i) => {
+  const b = document.createElement("button");
+  b.innerHTML = `<b>MISSION ${i + 1}</b><span></span><small></small>`;
+  b.querySelector("span").textContent = "　" + st.title;
+  b.querySelector("small").textContent = st.type;
+  b.addEventListener("click", () => startSingle(i));
+  grid.appendChild(b);
+});
+renderBest();
+</script>
+</body>
+</html>

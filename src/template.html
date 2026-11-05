@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ホワイトハッカー・ミッション</title>
+<!-- このファイルは build.sh で自動生成されます。編集は src/ フォルダのファイルで行ってください。 -->
+<style>
+/*STYLE*/
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><button class="ghost" id="btn-sound">🔊 音あり</button></div>
+
+  <!-- タイトル -->
+  <section id="s-title" class="screen active">
+    <div class="card" style="text-align:center">
+      <div class="title-logo">&gt; WHITE_HAT_MISSION_</div>
+      <h2>ホワイトハッカー・ミッション</h2>
+      <p class="sub">あなたはセキュリティ会社の新人ホワイトハッカー。<br>悪いハッカーより先に、システムの<b>脆弱性（セキュリティの穴）</b>を見つけよう！</p>
+      <div class="sub" style="font-size:13px">難易度</div>
+      <div class="diff-chips" id="diff-chips"></div>
+      <div class="sub" style="font-size:13px" id="diff-desc"></div>
+      <div class="menu-grid">
+        <button class="primary" id="btn-story">▶ ストーリーモード<small>全15ミッションで「まなび高校」を守れ</small></button>
+        <button id="btn-quick">⚡ クイックプレイ<small>ランダムな5ミッション</small></button>
+        <button id="btn-weak">💪 苦手克服モード<small>苦手な題材を5ミッション</small></button>
+        <button id="btn-select">🎯 ステージを選ぶ<small>題材を1つ選んでプレイ</small></button>
+      </div>
+      <div class="menu-grid sub-menu">
+        <button id="btn-text">📖 学習テキスト<small>15題材の解説</small></button>
+        <button id="btn-glossary">🎓 試験対策・用語集<small>用語集と用語クイズ</small></button>
+        <button id="btn-stats">📊 成績・苦手リスト<small>分野別の得意・苦手</small></button>
+        <button id="btn-ach">🏆 実績<small id="ach-count"></small></button>
+      </div>
+      <p class="sub" id="best-score" style="margin-top:12px;font-size:14px"></p>
+    </div>
+    <div class="card">
+      <h3>遊び方</h3>
+      <ul class="rules">
+        <li>ソースコード・メール・SNS・設定ファイル・ログが表示されます。</li>
+        <li>危ないと思う<b>行をクリック</b>してマーク（もう一度クリックで解除）。</li>
+        <li>「診断レポート提出」で答え合わせ。見つけたら <b>+100点</b>、安全な行をマークすると減点。</li>
+        <li>そのあと「直し方クイズ」に正解すると <b>+50点</b>。【試験風】の問題も出ます。</li>
+        <li>問題は1つの題材に複数パターンあり、毎回ランダムに出題されます。</li>
+      </ul>
+      <h3>ホワイトハッカーの約束</h3>
+      <ul class="rules">
+        <li>診断は<b>許可をもらったシステムだけ</b>。他人のシステムを勝手に調べるのは犯罪です（不正アクセス禁止法）。</li>
+        <li>見つけた穴は悪用せず、<b>持ち主に報告して直してもらう</b>のが仕事です。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- プロローグ -->
+  <section id="s-prologue" class="screen">
+    <div class="card prologue">
+      <div class="title-logo" style="font-size:22px;margin-bottom:12px">&gt; STORY_MODE_</div>
+      <div id="prologue-text"></div>
+      <div class="row"><span class="spacer"></span><button class="primary" id="btn-prologue-go">ミッション1へ</button></div>
+    </div>
+  </section>
+
+  <!-- ステージ選択 -->
+  <section id="s-select" class="screen">
+    <div class="card">
+      <div class="row"><h2>ステージを選ぶ</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">題材を1つ選んで遊べます。毎回ちがうパターンの問題が出ます。</p>
+      <div class="stage-grid" id="stage-grid"></div>
+    </div>
+  </section>
+
+  <!-- ゲーム -->
+  <section id="s-game" class="screen">
+    <div class="hud">
+      <span>MISSION <b id="hud-stage"></b></span>
+      <span>SCORE <b id="hud-score">0</b></span>
+      <span>マーク <b id="hud-marks">0</b>行</span>
+      <span>脆弱性 <b id="hud-total">0</b>件</span>
+      <span class="timer" id="hud-timer-wrap">残り <b id="hud-timer"></b>秒</span>
+      <span class="spacer"></span>
+      <span id="hud-diff" class="badge diff"></span>
+      <span id="hud-type" class="badge"></span>
+    </div>
+    <div class="card scenario">
+      <div class="story-line" id="g-story"></div>
+      <h2 id="g-title"></h2>
+      <div id="g-client" class="sub"></div>
+      <p id="g-scenario"></p>
+    </div>
+    <div class="code" id="g-code"></div>
+    <div class="hint" id="g-hint"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="ghost" id="btn-hint"></button>
+      <button class="ghost" id="btn-quit">中断</button>
+      <span class="spacer"></span>
+      <button class="primary" id="btn-submit">診断レポート提出</button>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section id="s-result" class="screen">
+    <div class="card">
+      <div class="row"><h2 id="r-title">診断結果</h2><span class="spacer"></span><span class="score-big" id="r-gain"></span></div>
+      <div class="bonus" id="r-bonus"></div>
+      <div class="code" id="r-code" style="margin-top:8px"></div>
+      <p class="sub" style="font-size:13px">緑=発見 ／ 赤=見逃し ／ 取り消し線=安全な行をマーク</p>
+      <div id="r-list"></div>
+    </div>
+    <div class="card">
+      <h3>直し方クイズ</h3>
+      <p id="q-text"></p>
+      <div class="choices" id="q-choices"></div>
+      <p id="q-explain" class="sub" style="display:none"></p>
+    </div>
+    <div class="row">
+      <button id="btn-review">📖 学習テキストで復習</button>
+      <span class="spacer"></span>
+      <button class="primary" id="btn-next" disabled>次のミッションへ</button>
+    </div>
+  </section>
+
+  <!-- 最終結果 -->
+  <section id="s-final" class="screen">
+    <div class="card" style="text-align:center">
+      <p class="sub" id="f-mode"></p>
+      <div class="rank" id="f-rank"></div>
+      <h2 id="f-title"></h2>
+      <div class="score-big" id="f-score"></div>
+      <p id="f-msg" class="sub"></p>
+      <p id="f-epilogue" style="text-align:left"></p>
+    </div>
+    <div class="card" id="f-ach-card">
+      <h3>🏆 新しく解除した実績</h3>
+      <div id="f-ach"></div>
+    </div>
+    <div class="card">
+      <h3>分野別の結果</h3>
+      <table class="sum" id="f-cats"></table>
+    </div>
+    <div class="card">
+      <h3>ミッション別スコア</h3>
+      <table class="sum" id="f-table"></table>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="primary" id="btn-retry">もう一度プレイ</button>
+      <button id="btn-final-stats">📊 苦手リストを見る</button>
+      <button data-back>タイトルへ</button>
+    </div>
+  </section>
+
+  <!-- 学習テキスト -->
+  <section id="s-text" class="screen">
+    <div class="card">
+      <div class="row"><h2>📖 学習テキスト</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">ゲームに出てくる15の題材の解説です。予習にも復習にも使えます。読んだ章には ✓ が付きます。</p>
+      <div class="toc" id="text-toc"></div>
+    </div>
+    <div id="text-body"></div>
+    <div class="row" style="justify-content:center"><button class="ghost" id="btn-text-top">▲ 目次へ戻る</button></div>
+  </section>
+
+  <!-- 用語集 -->
+  <section id="s-glossary" class="screen">
+    <div class="card">
+      <div class="row"><h2>🎓 試験対策・用語集</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">情報セキュリティマネジメント試験・基本情報技術者試験によく出る用語です。</p>
+      <div class="row"><button class="primary" id="btn-gquiz">用語クイズに挑戦（10問）</button></div>
+      <input class="gl-search" id="gl-search" type="search" placeholder="用語をさがす（例：ハッシュ、DMZ）">
+      <div id="gl-list"></div>
+    </div>
+  </section>
+
+  <!-- 用語クイズ -->
+  <section id="s-gquiz" class="screen">
+    <div class="card">
+      <div class="row"><h2>用語クイズ</h2><span class="spacer"></span><span class="badge" id="gq-progress"></span></div>
+      <p class="sub">この説明にあてはまる用語はどれ？</p>
+      <div class="gq-def" id="gq-def"></div>
+      <div class="choices" id="gq-choices"></div>
+      <p id="gq-explain" class="sub"></p>
+      <div class="row"><button class="ghost" id="btn-gq-quit">やめる</button><span class="spacer"></span><button class="primary" id="btn-gq-next" disabled>次へ</button></div>
+    </div>
+  </section>
+
+  <!-- 成績・苦手リスト -->
+  <section id="s-stats" class="screen">
+    <div class="card">
+      <div class="row"><h2>📊 成績・苦手リスト</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">これまでのプレイ記録です（このブラウザに保存されます）。正解率＝脆弱性の発見率70%＋クイズ正解率30%。</p>
+      <div id="stats-empty" class="sub"></div>
+      <h3 style="margin-top:12px">分野別</h3>
+      <table class="sum" id="stats-cats"></table>
+      <h3 style="margin-top:16px">題材別（苦手な順）</h3>
+      <table class="sum" id="stats-topics"></table>
+      <h3 style="margin-top:16px">よく見逃す脆弱性</h3>
+      <div id="stats-missed"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="primary" id="btn-stats-weak">💪 苦手克服モードで練習</button>
+        <span class="spacer"></span>
+        <button class="ghost" id="btn-reset">記録をリセット</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 実績 -->
+  <section id="s-ach" class="screen">
+    <div class="card">
+      <div class="row"><h2>🏆 実績</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub" id="ach-summary"></p>
+      <div class="ach-grid" id="ach-grid"></div>
+    </div>
+  </section>
+
+</div>
+<div class="modal" id="modal">
+  <div class="card">
+    <div class="row"><span class="spacer"></span><button class="ghost" id="btn-modal-close">閉じる ✕</button></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+/*DATA*/
+</script>
+<script>
+/*APP*/
+</script>
+</body>
+</html>

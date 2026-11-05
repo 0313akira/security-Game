@@ -90,6 +90,19 @@
   .stage-grid button { text-align: left; border-color: var(--line); color: var(--text); font-weight: normal; }
   .stage-grid button small { color: var(--muted); display: block; }
   .rank { font-size: 64px; font-family: var(--mono); color: var(--accent); text-shadow: 0 0 18px rgba(46,232,143,.6); line-height: 1.1; }
+  .lesson h3 { color: var(--accent); }
+  .lesson h4 { margin: 14px 0 4px; color: var(--accent2); font-size: 15px; }
+  .lesson p { margin: 4px 0; }
+  .lesson ul { margin: 4px 0; padding-left: 20px; }
+  .lesson .ex { font-family: var(--mono); font-size: 13px; background: #070c0b; border: 1px solid var(--line);
+    padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; color: var(--warn); margin: 6px 0; }
+  .lesson .tip { background: var(--panel2); border-left: 4px solid var(--warn); padding: 8px 12px; border-radius: 6px; margin-top: 12px; font-size: 14px; }
+  .toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+  .toc a { color: var(--text); text-decoration: none; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+  .toc a:hover { border-color: var(--accent); }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; padding: 16px; overflow-y: auto; z-index: 10; }
+  .modal.open { display: block; }
+  .modal .card { max-width: 820px; margin: 20px auto; }
   .toast {
     position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
     background: var(--panel2); border: 1px solid var(--accent); color: var(--accent);
@@ -117,6 +130,7 @@
       <div class="row" style="justify-content:center">
         <button class="primary" id="btn-start">ミッション開始</button>
         <button id="btn-select">ステージを選ぶ</button>
+        <button id="btn-text">📖 学習テキスト</button>
       </div>
       <p class="sub" id="best-score" style="margin-top:12px"></p>
     </div>
@@ -183,6 +197,7 @@
       <p id="q-explain" class="sub" style="display:none"></p>
     </div>
     <div class="row">
+      <button id="btn-review">📖 学習テキストで復習</button>
       <span class="spacer"></span>
       <button class="primary" id="btn-next" disabled>次のミッションへ</button>
     </div>
@@ -207,6 +222,23 @@
     </div>
   </section>
 
+  <!-- 学習テキスト -->
+  <section id="s-text" class="screen">
+    <div class="card">
+      <div class="row"><h2>📖 学習テキスト</h2><span class="spacer"></span><button class="ghost" id="btn-text-back">戻る</button></div>
+      <p class="sub">ゲームに出てくる10の題材の解説です。予習してから挑戦しても、プレイ後の復習に使ってもOK。</p>
+      <div class="toc" id="text-toc"></div>
+    </div>
+    <div id="text-body"></div>
+    <div class="row" style="justify-content:center"><button class="ghost" id="btn-text-top">▲ 目次へ戻る</button></div>
+  </section>
+
+</div>
+<div class="modal" id="modal">
+  <div class="card">
+    <div class="row"><span class="spacer"></span><button class="ghost" id="btn-modal-close">閉じる ✕</button></div>
+    <div id="modal-body"></div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -545,6 +577,211 @@ const STAGES = [
   },
 ];
 
+/* ===================== 学習テキスト =====================
+   STAGES と同じ順番。各ミッションの題材の解説。
+*/
+const LESSONS = [
+  {
+    term: "SQLインジェクション",
+    what: "Webサイトの裏側では、データベース（情報をしまっておく倉庫）に「SQL」という命令文で「この人の情報をちょうだい」と問い合わせています。入力欄にSQLの一部を書き込んで、この命令文の意味を書き換えてしまう攻撃がSQLインジェクションです（インジェクション＝注入）。",
+    exampleLabel: "ユーザー名に「' OR '1'='1' --」と入力すると、命令文はこうなる：",
+    example: "SELECT * FROM users WHERE name='' OR '1'='1' --' AND pass=''\n\n→ '1'='1' は常に正しい（真）\n→ -- から後ろはコメント扱いで無視される\n→ パスワードのチェックが消えてログインできてしまう！",
+    danger: "パスワードなしでの不正ログイン、個人情報の大量流出、データの書き換えや削除など。",
+    defense: [
+      "プレースホルダ（プリペアドステートメント）を使い、入力を「ただのデータ」として扱う",
+      "入力値の形式をチェックする（数字だけの欄に記号が来たら拒否など）",
+      "データベースのアカウントには必要最低限の権限だけを与える",
+      "エラーの詳しい内容を利用者に見せない",
+    ],
+    tip: "実際に何百万件もの個人情報が漏れた事件の原因になってきた、最も有名な脆弱性の一つです。",
+  },
+  {
+    term: "クロスサイトスクリプティング（XSS）",
+    what: "掲示板やコメント欄などに書き込んだ「スクリプト（プログラム）」が、そのページを見た別の人のブラウザで実行されてしまう脆弱性です。入力された文字を、文字としてではなくHTMLとして表示してしまうことが原因です。",
+    exampleLabel: "コメント欄にこんな文字を書き込まれると…",
+    example: '<img src=x onerror="alert(document.cookie)">\n\n→ 画像の読み込みに失敗した瞬間に onerror の中身が実行される\n→ alert の代わりに「Cookieを攻撃者に送る」処理を書かれたら？',
+    danger: "ログイン情報（Cookie）を盗まれてなりすましされる、偽のログイン画面を表示される、勝手に投稿される など。",
+    defense: [
+      "表示するときにエスケープする（< を &lt; に、> を &gt; に変換するなど）",
+      "JavaScriptでは innerHTML ではなく textContent を使う",
+      "CSP（コンテンツセキュリティポリシー）で、実行してよいスクリプトを制限する",
+      "Cookieに HttpOnly 属性を付け、スクリプトから読めないようにする",
+    ],
+    tip: "「入力はすべて疑う」「出力するときは必ず無害化」がWebセキュリティの合言葉です。",
+  },
+  {
+    term: "フィッシング",
+    what: "本物そっくりのメールやSMS、Webサイトを使って、パスワードやクレジットカード番号などをだまし取る詐欺です。魚釣り（fishing）のようにエサで釣ることが語源と言われています。システムの穴ではなく「人の心のすき」を突く攻撃（ソーシャルエンジニアリング）の代表です。",
+    exampleLabel: "URLの「本当の持ち主」の見分け方：",
+    example: "http://schoo1-portal.com.login-check.xyz/reset\n\n分解すると：\n・schoo1-portal.com. … 本物っぽく見せる飾り\n・login-check.xyz … 本当の持ち主（学校とは無関係）\n\n→ ドメインは「http:// の後、最初の / の直前」の右端を見る",
+    danger: "アカウントの乗っ取り、お金の被害、乗っ取られたアカウントから友達にさらに詐欺メールが送られる など。",
+    defense: [
+      "見分けポイント：差出人のアドレス、急がせる・脅す文面、URLの本当のドメイン",
+      "メールやSMSのリンクは押さず、ブックマークや公式アプリからアクセスする",
+      "多要素認証（パスワード＋スマホの確認コードなど）を設定しておく",
+      "怪しいと思ったら一人で判断せず、先生や家族に相談する",
+    ],
+    tip: "SMSを使ったものは「スミッシング」と呼ばれます。宅配便の不在通知を装ったものが多いので要注意。",
+  },
+  {
+    term: "パスワードの安全な保存",
+    what: "サービス側はパスワードをそのまま保存してはいけません。「ハッシュ関数」という、元に戻せない一方向の変換をして保存します。さらに、ユーザーごとにランダムな文字（ソルト＝塩）を混ぜてからハッシュ化することで、同じパスワードでも違う値になるようにします。",
+    exampleLabel: "MD5・ソルトなしだと…",
+    example: "「1234」の MD5 → 81dc9bdb52d04dc20036dbd8313ed055\n\n→ 誰が計算しても毎回同じ値\n→ ネットで検索するだけで元の「1234」が分かってしまう",
+    danger: "データベースが漏れたとき、パスワードがすぐにバレる。同じパスワードを使い回していると、他のサービスまで次々と乗っ取られる（パスワードリスト攻撃）。",
+    defense: [
+      "【作る側】bcrypt や Argon2 など、ソルト付きで計算がわざと遅いハッシュ関数を使う",
+      "【作る側】短すぎるパスワードを登録させない。ログにパスワードを書かない",
+      "【使う側】長いパスワード（単語をつなげたパスフレーズなど）にする",
+      "【使う側】使い回さない。パスワード管理アプリや多要素認証を使う",
+    ],
+    tip: "「暗号化」は鍵があれば元に戻せますが、「ハッシュ化」は元に戻せません。パスワードの保存にはハッシュ化を使います。",
+  },
+  {
+    term: "ディレクトリトラバーサル",
+    what: "ファイル名に「../」（1つ上のフォルダ）を混ぜて、公開しているフォルダの外にある、見せてはいけないファイルを読み出す攻撃です（トラバーサル＝横断・通り抜け）。パス・トラバーサルとも呼ばれます。",
+    exampleLabel: "/download?file=../../../etc/passwd を送ると…",
+    example: "/var/www/uploads/../../../etc/passwd\n\n uploads → www → var → / （ルート）までさかのぼって\n→ 実際に読まれるのは /etc/passwd（サーバーのユーザー一覧）",
+    danger: "設定ファイル、パスワード、他の人がアップロードしたファイルなど、サーバー内の重要な情報が読まれる。",
+    defense: [
+      "利用者から受け取ったファイル名をそのままパスに使わない",
+      "「番号 → ファイル名」の対応表を用意し、番号で指定させる",
+      "パスを整理（正規化）したあと、許可したフォルダの中かどうか確認する",
+      "Webサーバーには必要なファイルだけ読める権限を与える",
+    ],
+    tip: "フォルダの階層構造（ツリー）と「相対パス」「絶対パス」の考え方を知っていると理解しやすい攻撃です。",
+  },
+  {
+    term: "セキュリティ設定のミス",
+    what: "プログラム自体に問題がなくても、設定を間違えるだけで大きな穴が開きます。Webの脆弱性ランキング「OWASP Top 10」でも上位に入る、とても多い原因です。",
+    exampleLabel: "よくある設定ミスの例：",
+    example: "・admin / admin などの初期パスワードのまま\n・開発用のデバッグモードが本番でもオン\n・使っていないサービスやポートが開きっぱなし\n・管理画面に世界中からアクセスできる（0.0.0.0/0）\n・最強権限の root で直接ログインできる",
+    danger: "初期パスワードはネットで調べればすぐ分かるので、自動プログラムで大量に狙われる。デバッグ画面からは内部の情報が丸見えになる。",
+    defense: [
+      "公開前にチェックリストで設定を確認する",
+      "初期パスワードは必ず変更する",
+      "必要な人に、必要な権限だけを与える（最小権限の原則）",
+      "定期的に設定を見直し、ソフトウェアをアップデートする",
+    ],
+    tip: "2016年には、初期パスワードのままの防犯カメラやルーターが「Mirai」というウイルスに大量に乗っ取られ、大規模な攻撃に使われました。",
+  },
+  {
+    term: "認証と認可（IDOR）",
+    what: "「認証」は『あなたは誰？』を確かめること（ログイン）。「認可」は『あなたは何をしていい？』を決めること。ログインのチェックだけして、そのデータを見る権限があるかを確認し忘れると、他人のデータにアクセスできてしまいます。この脆弱性を IDOR（安全でない直接オブジェクト参照）と呼びます。",
+    exampleLabel: "URLの番号を書き換えるだけで…",
+    example: "自分の成績：/api/grades/1001\n↓ 番号を1つ変える\n他人の成績：/api/grades/1002  ← 見えてしまう！",
+    danger: "他人の成績・住所・メッセージなどの個人情報が見られる。番号を順番に変えれば全員分を集められてしまう。",
+    defense: [
+      "サーバー側で毎回「この人がこのデータを見ていいか」をチェックする",
+      "画面にボタンを出さないだけ（見た目で隠すだけ）では対策にならない",
+      "推測しにくいIDにするのは補助的な対策。それだけでは不十分",
+    ],
+    tip: "SQLインジェクション対策（プレースホルダ）が完璧でも防げない、というのがポイント。脆弱性ごとに対策は別物です。",
+  },
+  {
+    term: "OSコマンドインジェクション",
+    what: "プログラムの中からサーバーのOSのコマンド（ping、ls など）を呼び出すとき、入力に別のコマンドを混ぜて、攻撃者の好きなコマンドを実行させる攻撃です。",
+    exampleLabel: "ホスト名の欄にこう入力すると…",
+    example: "8.8.8.8; cat /etc/passwd\n\n→ 実行されるのは「ping -c 1 8.8.8.8; cat /etc/passwd」\n→ ; の後ろも別のコマンドとして実行される\n※ ; && | ` $( ) などがコマンドをつなぐ特殊な記号",
+    danger: "サーバー上でどんなコマンドでも実行できる＝サーバーの乗っ取り。ファイルの削除、ウイルスの設置、他への攻撃の踏み台など、被害はとても大きい。",
+    defense: [
+      "そもそもOSコマンドを使わず、プログラミング言語のライブラリで代わりにする",
+      "使う場合はシェルを通さず、引数をリストで渡す",
+      "入力が正しい形式（IPアドレスなど）か、許可リストで検証する",
+      "プログラムを最小限の権限で動かす",
+    ],
+    tip: "SQLインジェクション・XSS・コマンドインジェクションは、どれも「データのつもりの入力が、命令として解釈される」という同じ仕組みの仲間です。",
+  },
+  {
+    term: "秘密情報のハードコード",
+    what: "APIキーやパスワードなどの秘密情報を、ソースコードに直接書き込むこと（ハードコード）は危険です。ブラウザで動くJavaScriptやスマホアプリは利用者の手元に配られるので、中身を誰でも見ることができます。",
+    exampleLabel: "ブラウザで誰でもできること：",
+    example: "F12キー（開発者ツール）→「Sources」タブ\n→ 配信された config.js の中身がそのまま読める\n→ const API_KEY = \"sk_live_...\" も丸見え",
+    danger: "キーを使ってなりすまされる、有料APIを勝手に使われ高額請求が来る、データベースに侵入される など。GitHubに公開すると、自動で探すプログラムに数分で見つけられることもある。",
+    defense: [
+      "秘密情報はサーバー側の環境変数やシークレット管理サービスに置く",
+      "ブラウザ・アプリ → 自分のサーバー → 外部API の順で中継する",
+      ".gitignore で設定ファイルをGitに含めない",
+      "漏れたら、まずキーやパスワードを無効化・変更する（行を消すだけでは履歴に残る）",
+    ],
+    tip: "Gitは過去の履歴をすべて覚えています。一度コミットした秘密情報は「漏れたもの」として扱いましょう。",
+  },
+  {
+    term: "ログ解析とインシデント対応",
+    what: "サーバーは「いつ・誰が・何をしたか」をログ（記録）に残しています。ログを読めば攻撃の痕跡を見つけられます。攻撃などのセキュリティ事故を「インシデント」と呼び、それに対応することをインシデント対応と言います。",
+    exampleLabel: "HTTPステータスコード（ログ末尾の数字）の意味：",
+    example: "200 … 成功\n401 … 認証失敗（ログイン失敗など）\n403 … アクセス禁止\n404 … ページが見つからない\n500 … サーバー内部エラー\n\n怪しいパターン：\n・同じIPから短時間に401が大量 → パスワード総当たり\n・' OR や <script> など変な記号 → インジェクションの試み\n・../ が入ったアクセス → ディレクトリトラバーサル\n・攻撃っぽいアクセスなのに 200 → 成功した可能性大！",
+    danger: "発見や報告が遅れるほど被害が広がる。ログを消したり書き換えたりすると、何が起きたか分からなくなる。",
+    defense: [
+      "① 検知：ログや監視で異常に気づく",
+      "② 報告：すぐに責任者に知らせる（一人で抱え込まない）",
+      "③ 封じ込め：被害が広がらないよう、該当機能を止めるなどする",
+      "④ 復旧・再発防止：原因を直し、同じことが起きないようにする",
+      "ログは証拠なので保存しておく。攻撃元にやり返すのは違法になりうるのでNG",
+    ],
+    tip: "これまでのミッション1〜9で学んだ攻撃が、ログの中では実際にこう見えます。総復習のつもりで見直してみましょう。",
+  },
+];
+
+function renderLesson(i, container, withPlay) {
+  const L = LESSONS[i];
+  const box = document.createElement("div");
+  box.className = "card lesson";
+  box.id = "lesson-" + i;
+  const add = (tag, text, cls) => {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    el.textContent = text;
+    box.appendChild(el);
+    return el;
+  };
+  add("div", `第${i + 1}章　MISSION ${i + 1}「${STAGES[i].title}」で登場`, "sub");
+  add("h3", L.term);
+  add("h4", "どんなもの？");
+  add("p", L.what);
+  add("h4", "具体例");
+  add("p", L.exampleLabel);
+  add("div", L.example, "ex");
+  add("h4", "何が危ない？");
+  add("p", L.danger);
+  add("h4", "対策");
+  const ul = document.createElement("ul");
+  L.defense.forEach(d => { const li = document.createElement("li"); li.textContent = d; ul.appendChild(li); });
+  box.appendChild(ul);
+  add("div", "💡 " + L.tip, "tip");
+  if (withPlay) {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.style.marginTop = "12px";
+    const b = document.createElement("button");
+    b.textContent = `▶ MISSION ${i + 1} に挑戦`;
+    b.addEventListener("click", () => startSingle(i));
+    row.appendChild(b);
+    box.appendChild(row);
+  }
+  container.appendChild(box);
+}
+
+function buildTextScreen() {
+  const toc = $("text-toc"), body = $("text-body");
+  LESSONS.forEach((L, i) => {
+    const a = document.createElement("a");
+    a.href = "#lesson-" + i;
+    a.textContent = `第${i + 1}章　${L.term}`;
+    a.addEventListener("click", (e) => { e.preventDefault(); $("lesson-" + i).scrollIntoView({ behavior: "smooth" }); });
+    toc.appendChild(a);
+    renderLesson(i, body, true);
+  });
+}
+
+function openLessonModal(i) {
+  const mb = $("modal-body");
+  mb.innerHTML = "";
+  renderLesson(i, mb, false);
+  mb.firstChild.classList.remove("card");
+  $("modal").classList.add("open");
+}
+
 const RANKS = [
   { min: 0.9, rank: "S", title: "伝説のホワイトハッカー", msg: "完璧に近い診断！あなたがいればこの学校は安心です。" },
   { min: 0.75, rank: "A", title: "凄腕セキュリティエンジニア", msg: "ほとんどの穴を見抜きました。プロ級です！" },
@@ -785,6 +1022,13 @@ STAGES.forEach((st, i) => {
   b.addEventListener("click", () => startSingle(i));
   grid.appendChild(b);
 });
+$("btn-text").addEventListener("click", () => show("s-text"));
+$("btn-text-back").addEventListener("click", () => { renderBest(); show("s-title"); });
+$("btn-text-top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+$("btn-review").addEventListener("click", () => openLessonModal(state.index));
+$("btn-modal-close").addEventListener("click", () => $("modal").classList.remove("open"));
+$("modal").addEventListener("click", (e) => { if (e.target.id === "modal") $("modal").classList.remove("open"); });
+buildTextScreen();
 renderBest();
 </script>
 </body>

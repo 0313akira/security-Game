@@ -1175,4 +1175,7 @@ const ACHIEVEMENTS = [
   { id: "all_topics", icon: "🗺️", name: "全分野制覇",             desc: "全15題材をプレイする" },
   { id: "scholar",    icon: "📖", name: "勉強家",                 desc: "学習テキストの全章を読む" },
   { id: "glossary",   icon: "🎓", name: "用語博士",               desc: "用語クイズで10問中9問以上正解" },
+  { id: "term_first", icon: "🖥️", name: "はじめてのターミナル",   desc: "ターミナル演習を1つクリア" },
+  { id: "term_nohint",icon: "🥷", name: "ノーヒント・ハッカー",   desc: "ヒントを使わずにターミナル演習をクリア" },
+  { id: "term_all",   icon: "⌨️", name: "コマンドマスター",       desc: "ターミナル演習をすべてクリア" },
 ];

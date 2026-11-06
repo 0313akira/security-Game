@@ -19,6 +19,7 @@
   --warn: #ffc94d;
   --gold: #ffd76a;
   --mono: "Consolas", "Menlo", "Courier New", monospace;
+  color-scheme: dark;  /* ハッカー風の暗い画面で統一 */
 }
 * { box-sizing: border-box; }
 body {
@@ -26,7 +27,7 @@ body {
   font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
   line-height: 1.6; min-height: 100vh;
 }
-.wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+.wrap { max-width: 920px; margin: 0 auto; padding-block: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 h1, h2, h3 { margin: 0 0 8px; }
 .screen { display: none; animation: fadein .25s ease; }
 .screen.active { display: block; }
@@ -159,7 +160,7 @@ table.sum td, table.sum th { border-bottom: 1px solid var(--line); padding: 6px;
 .ach small { color: var(--muted); }
 
 /* プロローグ */
-.prologue p { margin: 0 0 12px; opacity: 0; animation: fadein .5s ease forwards; }
+.prologue p { margin: 0 0 12px; animation: fadein .5s ease backwards; }
 
 /* モーダル・トースト */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; padding: 16px; overflow-y: auto; z-index: 10; }
@@ -199,6 +200,14 @@ table.sum td:first-child { min-width: 7em; }
 .cmd-item { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
 .cmd-item b { font-family: var(--mono); color: var(--accent); margin-right: 8px; }
 .cmd-item code { display: block; font-family: var(--mono); font-size: 12px; color: var(--warn); margin-top: 4px; word-break: break-all; }
+
+/* 画面内ダイアログ */
+.dialog { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 30; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.dialog[hidden] { display: none; }
+.dialog-box { background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 18px; max-width: 420px; width: 100%; box-shadow: 0 0 30px rgba(46,232,143,.15); }
+.dialog-box p { margin: 0 0 14px; white-space: pre-wrap; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
@@ -455,6 +464,12 @@ table.sum td:first-child { min-width: 7em; }
   <div class="card">
     <div class="row"><span class="spacer"></span><button class="ghost" id="btn-modal-close">閉じる ✕</button></div>
     <div id="modal-body"></div>
+  </div>
+</div>
+<div class="dialog" id="dialog" hidden>
+  <div class="dialog-box" role="dialog" aria-modal="true" aria-labelledby="dialog-msg">
+    <p id="dialog-msg"></p>
+    <div class="row" id="dialog-btns" style="justify-content:flex-end"></div>
   </div>
 </div>
 <div class="toasts" id="toasts"></div>
@@ -1742,6 +1757,24 @@ function updateAchCount() {
   $("ach-count").textContent = `${Object.keys(save.achievements).length} / ${ACHIEVEMENTS.length} 解除`;
 }
 
+/* ---------------- 画面内ダイアログ（alert / confirm の代わり） ---------------- */
+function dialog(message, buttons) {
+  const box = $("dialog");
+  $("dialog-msg").textContent = message;
+  const row = $("dialog-btns");
+  row.innerHTML = "";
+  buttons.forEach(b => {
+    const btn = el("button", b.label, b.primary ? "primary" : "ghost");
+    btn.addEventListener("click", () => { box.hidden = true; if (b.onClick) b.onClick(); });
+    row.appendChild(btn);
+  });
+  box.hidden = false;
+  const first = row.querySelector(".primary") || row.firstChild;
+  if (first) first.focus();
+}
+const askConfirm = (message, yesLabel, onYes) => dialog(message, [{ label: "やめる" }, { label: yesLabel, primary: true, onClick: onYes }]);
+const notice = (message, onOk) => dialog(message, [{ label: "OK", primary: true, onClick: onOk }]);
+
 /* ---------------- 画面切り替え ---------------- */
 let stopTimer = () => {};
 function show(id) {
@@ -1819,7 +1852,7 @@ function weakQueue() {
 }
 function startWeak() {
   if (Object.keys(save.topics).length === 0) {
-    alert("まだプレイ記録がありません。まずはストーリーモードかクイックプレイで遊んでみよう！");
+    notice("まだプレイ記録がありません。まずはストーリーモードかクイックプレイで遊んでみよう！");
     return;
   }
   startRun("weak", weakQueue());
@@ -1914,11 +1947,14 @@ function useHint() {
   if (cost) toast(`ヒント使用 -${cost}`);
 }
 
-function submit(timeUp) {
+function submit(timeUp, force) {
   if (M.submitted) return;
   const d = DIFFS[run.diff];
   const v = M.variant;
-  if (!timeUp && M.marks.size === 0 && !confirm("1行もマークしていません。このまま提出しますか？")) return;
+  if (!timeUp && !force && M.marks.size === 0) {
+    askConfirm("1行もマークしていません。このまま提出しますか？", "提出する", () => submit(false, true));
+    return;
+  }
   M.submitted = true;
   stopTimer();
 
@@ -2278,8 +2314,7 @@ function nextGQ() {
   if (GQ.pos < GQ.qs.length - 1) { GQ.pos++; renderGQ(); return; }
   SFX.fanfare();
   if (GQ.ok >= 9) unlock("glossary");
-  alert(`用語クイズ終了！ ${GQ.qs.length}問中 ${GQ.ok}問正解${GQ.ok >= 9 ? "\nすばらしい！" : GQ.ok >= 6 ? "\nいい調子！" : "\n用語集で復習しよう！"}`);
-  show("s-glossary");
+  notice(`用語クイズ終了！ ${GQ.qs.length}問中 ${GQ.ok}問正解。${GQ.ok >= 9 ? "すばらしい！" : GQ.ok >= 6 ? "いい調子！" : "用語集で復習しよう！"}`, () => show("s-glossary"));
 }
 
 /* ---------------- 成績・苦手リスト ---------------- */
@@ -2363,18 +2398,17 @@ $("btn-gq-quit").addEventListener("click", () => show("s-glossary"));
 $("btn-stats").addEventListener("click", () => { renderStats(); show("s-stats"); });
 $("btn-final-stats").addEventListener("click", () => { renderStats(); show("s-stats"); });
 $("btn-ach").addEventListener("click", () => { renderAch(); show("s-ach"); });
-$("btn-reset").addEventListener("click", () => {
-  if (!confirm("プレイ記録・実績・ベストスコアをすべて消します。よろしいですか？")) return;
+$("btn-reset").addEventListener("click", () => askConfirm("プレイ記録・実績・ベストスコアをすべて消します。よろしいですか？", "消す", () => {
   const keep = { diff: save.diff, sound: save.sound };
   save = Object.assign(defaultSave(), keep);
   persist();
   document.querySelectorAll("#text-toc a").forEach(a => a.classList.remove("read"));
   renderStats();
   toast("記録をリセットしました");
-});
+}));
 $("btn-sound").addEventListener("click", () => { save.sound = !save.sound; persist(); renderTitle(); SFX.click(); });
 $("btn-hint").addEventListener("click", useHint);
-$("btn-quit").addEventListener("click", () => { if (confirm("ミッションを中断してタイトルに戻りますか？")) goTitle(); });
+$("btn-quit").addEventListener("click", () => askConfirm("ミッションを中断してタイトルに戻りますか？", "中断する", goTitle));
 $("btn-submit").addEventListener("click", () => submit(false));
 $("btn-next").addEventListener("click", nextMission);
 $("btn-retry").addEventListener("click", () => {

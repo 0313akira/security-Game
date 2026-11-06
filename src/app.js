@@ -97,6 +97,24 @@ function updateAchCount() {
   $("ach-count").textContent = `${Object.keys(save.achievements).length} / ${ACHIEVEMENTS.length} 解除`;
 }
 
+/* ---------------- 画面内ダイアログ（alert / confirm の代わり） ---------------- */
+function dialog(message, buttons) {
+  const box = $("dialog");
+  $("dialog-msg").textContent = message;
+  const row = $("dialog-btns");
+  row.innerHTML = "";
+  buttons.forEach(b => {
+    const btn = el("button", b.label, b.primary ? "primary" : "ghost");
+    btn.addEventListener("click", () => { box.hidden = true; if (b.onClick) b.onClick(); });
+    row.appendChild(btn);
+  });
+  box.hidden = false;
+  const first = row.querySelector(".primary") || row.firstChild;
+  if (first) first.focus();
+}
+const askConfirm = (message, yesLabel, onYes) => dialog(message, [{ label: "やめる" }, { label: yesLabel, primary: true, onClick: onYes }]);
+const notice = (message, onOk) => dialog(message, [{ label: "OK", primary: true, onClick: onOk }]);
+
 /* ---------------- 画面切り替え ---------------- */
 let stopTimer = () => {};
 function show(id) {
@@ -174,7 +192,7 @@ function weakQueue() {
 }
 function startWeak() {
   if (Object.keys(save.topics).length === 0) {
-    alert("まだプレイ記録がありません。まずはストーリーモードかクイックプレイで遊んでみよう！");
+    notice("まだプレイ記録がありません。まずはストーリーモードかクイックプレイで遊んでみよう！");
     return;
   }
   startRun("weak", weakQueue());
@@ -269,11 +287,14 @@ function useHint() {
   if (cost) toast(`ヒント使用 -${cost}`);
 }
 
-function submit(timeUp) {
+function submit(timeUp, force) {
   if (M.submitted) return;
   const d = DIFFS[run.diff];
   const v = M.variant;
-  if (!timeUp && M.marks.size === 0 && !confirm("1行もマークしていません。このまま提出しますか？")) return;
+  if (!timeUp && !force && M.marks.size === 0) {
+    askConfirm("1行もマークしていません。このまま提出しますか？", "提出する", () => submit(false, true));
+    return;
+  }
   M.submitted = true;
   stopTimer();
 
@@ -633,8 +654,7 @@ function nextGQ() {
   if (GQ.pos < GQ.qs.length - 1) { GQ.pos++; renderGQ(); return; }
   SFX.fanfare();
   if (GQ.ok >= 9) unlock("glossary");
-  alert(`用語クイズ終了！ ${GQ.qs.length}問中 ${GQ.ok}問正解${GQ.ok >= 9 ? "\nすばらしい！" : GQ.ok >= 6 ? "\nいい調子！" : "\n用語集で復習しよう！"}`);
-  show("s-glossary");
+  notice(`用語クイズ終了！ ${GQ.qs.length}問中 ${GQ.ok}問正解。${GQ.ok >= 9 ? "すばらしい！" : GQ.ok >= 6 ? "いい調子！" : "用語集で復習しよう！"}`, () => show("s-glossary"));
 }
 
 /* ---------------- 成績・苦手リスト ---------------- */
@@ -718,18 +738,17 @@ $("btn-gq-quit").addEventListener("click", () => show("s-glossary"));
 $("btn-stats").addEventListener("click", () => { renderStats(); show("s-stats"); });
 $("btn-final-stats").addEventListener("click", () => { renderStats(); show("s-stats"); });
 $("btn-ach").addEventListener("click", () => { renderAch(); show("s-ach"); });
-$("btn-reset").addEventListener("click", () => {
-  if (!confirm("プレイ記録・実績・ベストスコアをすべて消します。よろしいですか？")) return;
+$("btn-reset").addEventListener("click", () => askConfirm("プレイ記録・実績・ベストスコアをすべて消します。よろしいですか？", "消す", () => {
   const keep = { diff: save.diff, sound: save.sound };
   save = Object.assign(defaultSave(), keep);
   persist();
   document.querySelectorAll("#text-toc a").forEach(a => a.classList.remove("read"));
   renderStats();
   toast("記録をリセットしました");
-});
+}));
 $("btn-sound").addEventListener("click", () => { save.sound = !save.sound; persist(); renderTitle(); SFX.click(); });
 $("btn-hint").addEventListener("click", useHint);
-$("btn-quit").addEventListener("click", () => { if (confirm("ミッションを中断してタイトルに戻りますか？")) goTitle(); });
+$("btn-quit").addEventListener("click", () => askConfirm("ミッションを中断してタイトルに戻りますか？", "中断する", goTitle));
 $("btn-submit").addEventListener("click", () => submit(false));
 $("btn-next").addEventListener("click", nextMission);
 $("btn-retry").addEventListener("click", () => {

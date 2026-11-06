@@ -11,6 +11,7 @@
   --warn: #ffc94d;
   --gold: #ffd76a;
   --mono: "Consolas", "Menlo", "Courier New", monospace;
+  color-scheme: dark;  /* ハッカー風の暗い画面で統一 */
 }
 * { box-sizing: border-box; }
 body {
@@ -18,7 +19,7 @@ body {
   font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
   line-height: 1.6; min-height: 100vh;
 }
-.wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+.wrap { max-width: 920px; margin: 0 auto; padding-block: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 h1, h2, h3 { margin: 0 0 8px; }
 .screen { display: none; animation: fadein .25s ease; }
 .screen.active { display: block; }
@@ -151,7 +152,7 @@ table.sum td, table.sum th { border-bottom: 1px solid var(--line); padding: 6px;
 .ach small { color: var(--muted); }
 
 /* プロローグ */
-.prologue p { margin: 0 0 12px; opacity: 0; animation: fadein .5s ease forwards; }
+.prologue p { margin: 0 0 12px; animation: fadein .5s ease backwards; }
 
 /* モーダル・トースト */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; padding: 16px; overflow-y: auto; z-index: 10; }
@@ -191,3 +192,11 @@ table.sum td:first-child { min-width: 7em; }
 .cmd-item { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
 .cmd-item b { font-family: var(--mono); color: var(--accent); margin-right: 8px; }
 .cmd-item code { display: block; font-family: var(--mono); font-size: 12px; color: var(--warn); margin-top: 4px; word-break: break-all; }
+
+/* 画面内ダイアログ */
+.dialog { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 30; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.dialog[hidden] { display: none; }
+.dialog-box { background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 18px; max-width: 420px; width: 100%; box-shadow: 0 0 30px rgba(46,232,143,.15); }
+.dialog-box p { margin: 0 0 14px; white-space: pre-wrap; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
